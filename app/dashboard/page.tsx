@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -454,7 +454,7 @@ export default function Dashboard() {
   function NavIcon({ tab, label, badge }: { tab: Tab; label: string; badge?: number }) {
     const active = activeTab === tab;
     const color = active ? "#c9a96e" : "rgba(255,255,255,0.72)";
-    const icons: Record<Tab, JSX.Element> = {
+    const icons: Record<Tab, React.ReactElement> = {
       discover: (<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={color} strokeWidth="1.5"><circle cx="10" cy="10" r="8" /><circle cx="10" cy="10" r="2" /></svg>),
       deals: (<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={color} strokeWidth="1.5"><rect x="3" y="3" width="14" height="14" rx="1" /><line x1="7" y1="8" x2="13" y2="8" /><line x1="7" y1="12" x2="11" y2="12" /></svg>),
       messages: (<svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke={color} strokeWidth="1.5"><path d="M3 4h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6l-4 3V5a1 1 0 0 1 1-1z" /></svg>),

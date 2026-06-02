@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
-export default function PaymentSuccess() {
+function PaymentSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dealId = searchParams.get("deal_id");
@@ -27,13 +28,13 @@ export default function PaymentSuccess() {
 
       <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "4px", color: "#4ade80", textTransform: "uppercase", marginBottom: "12px" }}>Payment Complete</p>
       <h1 style={{ fontFamily: "Arial", fontSize: "26px", fontWeight: "700", color: "white", margin: "0 0 12px" }}>You're all set.</h1>
-      <p style={{ fontFamily: "Georgia, serif", fontSize: "15px", color: "rgba(255,255,255,0.5)", lineHeight: "1.8", maxWidth: "340px", margin: "0 0 40px" }}>
+      <p style={{ fontFamily: "Georgia, serif", fontSize: "15px", color: "rgba(255,255,255,0.72)", lineHeight: "1.8", maxWidth: "340px", margin: "0 0 40px" }}>
         Your payment was received. The creator has been notified and your deal is officially on.
       </p>
 
       <div style={{ border: "1px solid rgba(255,255,255,0.06)", padding: "20px 28px", marginBottom: "32px", maxWidth: "320px", width: "100%" }}>
-        <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: "0 0 8px" }}>What happens next</p>
-        <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.55)", lineHeight: "1.8", margin: "0" }}>
+        <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", color: "rgba(255,255,255,0.55)", textTransform: "uppercase", margin: "0 0 8px" }}>What happens next</p>
+        <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.72)", lineHeight: "1.8", margin: "0" }}>
           Head to your Messages tab to coordinate with the creator. Contact info is now unlocked in your deal.
         </p>
       </div>
@@ -45,5 +46,13 @@ export default function PaymentSuccess() {
         Go to Dashboard
       </button>
     </div>
+  );
+}
+
+export default function PaymentSuccess() {
+  return (
+    <Suspense>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }
