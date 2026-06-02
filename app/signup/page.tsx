@@ -11,6 +11,7 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
@@ -42,15 +43,24 @@ export default function SignUp() {
           required
           style={{ padding: "16px 20px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "white", fontSize: "15px", outline: "none", width: "100%", fontFamily: "Georgia, serif" }}
         />
-        <input
-          type="password"
-          placeholder="Password (min 10 characters)"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={10}
-          style={{ padding: "16px 20px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "white", fontSize: "15px", outline: "none", width: "100%", fontFamily: "Georgia, serif" }}
-        />
+        <div style={{ position: "relative", width: "100%" }}>
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password (min 10 characters)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={10}
+            style={{ padding: "16px 48px 16px 20px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: "white", fontSize: "15px", outline: "none", width: "100%", fontFamily: "Georgia, serif" }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(p => !p)}
+            style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", fontSize: "12px", fontFamily: "Arial", letterSpacing: "1px", textTransform: "uppercase" }}
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </div>
 
         {error && <p style={{ color: "#ff6b6b", fontFamily: "Arial", fontSize: "13px" }}>{error}</p>}
 
