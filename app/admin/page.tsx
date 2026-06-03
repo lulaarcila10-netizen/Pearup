@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
-type Tab = "users" | "creators" | "brands" | "deals" | "messages" | "support";
+type Tab = "payouts" | "users" | "creators" | "brands" | "deals" | "messages" | "support";
 
 type User = { id: string; full_name: string | null; user_type: string };
 type Creator = { id: string; full_name: string | null; bio: string | null; niche: string[]; platforms: string[]; follower_count: number | null; rate_per_post: number | null };
 type Brand = { id: string; brand_name: string; description: string | null; industry: string[]; budget_min: number | null };
 type Deal = { id: string; brand_name: string; creator_name: string; message: string; budget: string | null; status: string; payment_status: string | null; created_at: string };
+type Payout = { id: string; creator_id: string; creator_name: string; brand_name: string; budget: string | null; payout_method: string | null; payout_sent: boolean };
 type Message = { id: string; deal_id: string; sender_id: string; content: string; type: string; created_at: string };
 type SupportThread = { user_id: string; user_name: string; user_type: string; last_message: string; last_message_at: string };
 type SupportMsg = { id: string; user_id: string; sender_type: string; content: string; created_at: string };
@@ -53,13 +54,14 @@ function Badge({ text, color }: { text: string; color: string }) {
 export default function AdminPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>("users");
+  const [activeTab, setActiveTab] = useState<Tab>("payouts");
   const [tabLoading, setTabLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [creators, setCreators] = useState<Creator[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [payouts, setPayouts] = useState<Payout[]>([]);
   const [expandedCreators, setExpandedCreators] = useState<Set<string>>(new Set());
   const [supportThreads, setSupportThreads] = useState<SupportThread[]>([]);
   const [activeSupportUser, setActiveSupportUser] = useState<SupportThread | null>(null);
@@ -87,7 +89,7 @@ export default function AdminPage() {
       const { data: profile } = await supabase.from("profiles").select("user_type").eq("id", user.id).single();
       if (!profile || profile.user_type !== "admin") { router.push("/dashboard"); return; }
       setLoading(false);
-      loadTab("users");
+      loadTab("payouts");
     }
     checkAdmin();
   }, [router]);
@@ -96,7 +98,27 @@ export default function AdminPage() {
     setTabLoading(true);
     setActiveTab(tab);
 
-    if (tab === "users") {
+    if (tab === "payouts") {
+      const { data } = await supabase.from("deals").select("id, brand_id, creator_id, budget, content_status, payout_sent").eq("content_status", "approved").order("id", { ascending: false });
+      if (data && data.length > 0) {
+        const brandIds = [...new Set(data.map((d: any) => d.brand_id))];
+        const creatorIds = [...new Set(data.map((d: any) => d.creator_id))];
+        const [{ data: bd }, { data: cd }, { data: cpd }] = await Promise.all([
+          supabase.from("brand_profiles").select("id, brand_name").in("id", brandIds),
+          supabase.from("profiles").select("id, full_name").in("id", creatorIds),
+          supabase.from("creator_profiles").select("id, payout_method").in("id", creatorIds),
+        ]);
+        const bMap: Record<string, string> = {};
+        bd?.forEach((b: any) => { bMap[b.id] = b.brand_name; });
+        const cMap: Record<string, string> = {};
+        cd?.forEach((c: any) => { cMap[c.id] = c.full_name || "Creator"; });
+        const pmMap: Record<string, string> = {};
+        cpd?.forEach((c: any) => { pmMap[c.id] = c.payout_method || ""; });
+        setPayouts(data.map((d: any) => ({ id: d.id, creator_id: d.creator_id, creator_name: cMap[d.creator_id] || "Unknown", brand_name: bMap[d.brand_id] || "Unknown", budget: d.budget, payout_method: pmMap[d.creator_id] || null, payout_sent: d.payout_sent || false })));
+      } else {
+        setPayouts([]);
+      }
+    } else if (tab === "users") {
       const { data } = await supabase.from("profiles").select("id, full_name, user_type").order("user_type");
       setUsers(data || []);
     } else if (tab === "creators") {
@@ -158,6 +180,11 @@ export default function AdminPage() {
     setTabLoading(false);
   }
 
+  async function markPayoutSent(dealId: string) {
+    await supabase.from("deals").update({ payout_sent: true }).eq("id", dealId);
+    setPayouts(prev => prev.map(p => p.id === dealId ? { ...p, payout_sent: true } : p));
+  }
+
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -166,8 +193,9 @@ export default function AdminPage() {
     );
   }
 
-  const tabs: Tab[] = ["users", "creators", "brands", "deals", "messages", "support"];
-  const counts: Record<Tab, number> = { users: users.length, creators: creators.length, brands: brands.length, deals: deals.length, messages: messages.length, support: supportThreads.length };
+  const tabs: Tab[] = ["payouts", "users", "creators", "brands", "deals", "messages", "support"];
+  const pendingPayouts = payouts.filter(p => !p.payout_sent).length;
+  const counts: Record<Tab, number> = { payouts: pendingPayouts, users: users.length, creators: creators.length, brands: brands.length, deals: deals.length, messages: messages.length, support: supportThreads.length };
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", color: "white", paddingBottom: "40px" }}>
@@ -200,6 +228,71 @@ export default function AdminPage() {
           <p style={{ color: "#c9a96e", fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", textAlign: "center", padding: "40px 0" }}>Loading...</p>
         ) : (
           <>
+            {/* PAYOUTS */}
+            {activeTab === "payouts" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "8px" }}>
+                  <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", margin: "0" }}>Payouts</p>
+                  {pendingPayouts > 0 && (
+                    <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#ff9500", border: "1px solid #ff9500", padding: "3px 10px", textTransform: "uppercase" }}>{pendingPayouts} pending</span>
+                  )}
+                </div>
+                {payouts.length === 0 && (
+                  <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No approved deals yet. When a brand approves content, it will appear here.</p>
+                )}
+                {payouts.map(p => {
+                  const amount = p.budget ? parseFloat(p.budget.replace(/[^0-9.]/g, "")) : null;
+                  const creatorAmount = amount ? (amount * 0.88).toFixed(2) : null;
+                  const yourCut = amount ? (amount * 0.12).toFixed(2) : null;
+                  return (
+                    <div key={p.id} style={{ border: `1px solid ${p.payout_sent ? "rgba(74,222,128,0.2)" : "rgba(255,149,0,0.35)"}`, padding: "18px", backgroundColor: p.payout_sent ? "rgba(74,222,128,0.03)" : "rgba(255,149,0,0.04)", display: "flex", flexDirection: "column", gap: "10px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div>
+                          <p style={{ fontFamily: "Arial", fontSize: "14px", fontWeight: "600", color: "white", margin: "0 0 2px" }}>{p.creator_name}</p>
+                          <p style={{ fontFamily: "Arial", fontSize: "10px", color: "rgba(255,255,255,0.4)", margin: "0", letterSpacing: "1px" }}>Deal with {p.brand_name}</p>
+                        </div>
+                        {p.payout_sent
+                          ? <span style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", color: "#4ade80", border: "1px solid rgba(74,222,128,0.4)", padding: "3px 10px", textTransform: "uppercase" }}>Sent ✓</span>
+                          : <span style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", color: "#ff9500", border: "1px solid rgba(255,149,0,0.4)", padding: "3px 10px", textTransform: "uppercase" }}>Pending</span>
+                        }
+                      </div>
+
+                      {creatorAmount && (
+                        <div style={{ display: "flex", gap: "16px" }}>
+                          <div style={{ flex: 1, border: "1px solid rgba(201,169,110,0.2)", padding: "10px 14px" }}>
+                            <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", margin: "0 0 4px" }}>Send to creator</p>
+                            <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "700", color: "#c9a96e", margin: "0" }}>${creatorAmount}</p>
+                          </div>
+                          <div style={{ flex: 1, border: "1px solid rgba(74,222,128,0.15)", padding: "10px 14px" }}>
+                            <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", margin: "0 0 4px" }}>Your 12% cut</p>
+                            <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "700", color: "#4ade80", margin: "0" }}>${yourCut}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <div style={{ border: "1px solid rgba(255,255,255,0.08)", padding: "12px 14px", backgroundColor: "rgba(255,255,255,0.02)" }}>
+                        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", margin: "0 0 6px" }}>Send payment to</p>
+                        {p.payout_method
+                          ? <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "white", margin: "0" }}>{p.payout_method}</p>
+                          : <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,100,100,0.7)", margin: "0" }}>⚠ Creator hasn't added a payout method yet — message them.</p>
+                        }
+                      </div>
+
+                      {!p.payout_sent && (
+                        <button
+                          onClick={() => markPayoutSent(p.id)}
+                          disabled={!p.payout_method}
+                          style={{ backgroundColor: p.payout_method ? "#c9a96e" : "rgba(201,169,110,0.25)", color: "#0a0a0a", padding: "13px", fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: p.payout_method ? "pointer" : "not-allowed" }}
+                        >
+                          Mark as Sent
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             {/* USERS */}
             {activeTab === "users" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>

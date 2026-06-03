@@ -37,6 +37,7 @@ export default function EditCreatorProfile() {
   const [selectedRate, setSelectedRate] = useState<{ label: string; min: number } | null>(null);
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [payoutMethod, setPayoutMethod] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
@@ -48,7 +49,7 @@ export default function EditCreatorProfile() {
 
       const [{ data: profile }, { data: cp }] = await Promise.all([
         supabase.from("profiles").select("full_name, avatar_url").eq("id", user.id).single(),
-        supabase.from("creator_profiles").select("bio, instagram_handle, tiktok_handle, location, follower_count, rate_per_post, niche, platforms").eq("id", user.id).single(),
+        supabase.from("creator_profiles").select("bio, instagram_handle, tiktok_handle, location, follower_count, rate_per_post, niche, platforms, payout_method").eq("id", user.id).single(),
       ]);
 
       if (profile) {
@@ -66,6 +67,7 @@ export default function EditCreatorProfile() {
         if (fr) setSelectedFollowers(fr);
         const rr = RATE_RANGES.find(r => r.min === cp.rate_per_post);
         if (rr) setSelectedRate(rr);
+        setPayoutMethod(cp.payout_method || "");
       }
       setLoading(false);
     }
@@ -98,6 +100,7 @@ export default function EditCreatorProfile() {
         rate_per_post: selectedRate?.min || null,
         niche: selectedNiches,
         platforms: selectedPlatforms,
+        payout_method: payoutMethod || null,
       }).eq("id", userId),
     ]);
 
@@ -222,6 +225,20 @@ export default function EditCreatorProfile() {
           <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
             {PLATFORMS.map(p => <TagButton key={p} label={p} active={selectedPlatforms.includes(p)} onClick={() => setSelectedPlatforms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p])} />)}
           </div>
+        </div>
+
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "24px" }}>
+          <label style={labelStyle}>Payout Method <span style={{ color: "#c9a96e" }}>*</span></label>
+          <input
+            type="text"
+            placeholder="e.g. Venmo @yourhandle  |  PayPal you@email.com  |  CashApp $tag"
+            value={payoutMethod}
+            onChange={e => setPayoutMethod(e.target.value)}
+            style={inputStyle}
+          />
+          <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.3)", margin: "10px 0 0", lineHeight: "1.6" }}>
+            🔒 Private — only visible to Pearup. Brands cannot see this. This is how we send you your payment after a deal is approved.
+          </p>
         </div>
 
         {error && <p style={{ color: "#ff6b6b", fontFamily: "Arial", fontSize: "13px", textAlign: "center" }}>{error}</p>}
