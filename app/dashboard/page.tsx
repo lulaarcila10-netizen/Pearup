@@ -1041,7 +1041,7 @@ export default function Dashboard() {
               </label>
             )}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "4px", maxWidth: "270px", margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "4px", maxWidth: "310px", margin: "0 auto" }}>
             {Array.from({ length: 9 }).map((_, i) => {
               const img = portfolio[i];
               if (img) {
