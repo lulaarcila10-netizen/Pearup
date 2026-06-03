@@ -143,6 +143,7 @@ export default function Dashboard() {
   const chatBottomRef = useRef<HTMLDivElement | null>(null);
   const [creatorStats, setCreatorStats] = useState<{ bio: string | null; niche: string[]; follower_count: number | null; rate_per_post: number | null } | null>(null);
   const [showSupport, setShowSupport] = useState(false);
+  const [showPaymentInfo, setShowPaymentInfo] = useState(false);
   const [supportMessages, setSupportMessages] = useState<SupportMsg[]>([]);
   const [supportInput, setSupportInput] = useState("");
   const [sendingSupport, setSendingSupport] = useState(false);
@@ -643,19 +644,32 @@ export default function Dashboard() {
           Your proposals & partnerships.
         </p>
 
-        <div style={{ border: "1px solid rgba(201,169,110,0.2)", backgroundColor: "rgba(201,169,110,0.04)", padding: "16px 18px", marginBottom: "24px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-            <span style={{ color: "#c9a96e", fontSize: "13px" }}>ⓘ</span>
-            <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", margin: "0", fontWeight: "700" }}>How Payment Works</p>
+        <button
+          onClick={() => setShowPaymentInfo(p => !p)}
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: "none", border: "none", borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 0 12px", marginBottom: "24px", cursor: "pointer" }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ color: "#c9a96e", fontSize: "12px" }}>ⓘ</span>
+            <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>How payment works</span>
           </div>
-          <ol style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.6)", lineHeight: "1.9", margin: "0", paddingLeft: "18px" }}>
-            <li>Brand pays the full deal amount through Pearup when a deal is accepted.</li>
-            <li>Funds are held securely — the creator does not receive payment yet.</li>
-            <li>Creator posts the content and submits the link inside the deal.</li>
-            <li>Brand has <strong style={{ color: "rgba(255,255,255,0.85)" }}>48 hours</strong> to dispute. If no dispute, payment is released automatically.</li>
-            <li>Pearup deducts its <strong style={{ color: "#c9a96e" }}>12% platform fee</strong> and the remaining balance goes to the creator.</li>
-          </ol>
-        </div>
+          <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px", transform: showPaymentInfo ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }}>▾</span>
+        </button>
+
+        {showPaymentInfo && (
+          <div style={{ marginTop: "-16px", marginBottom: "24px", padding: "16px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            {[
+              { step: "01", text: "Brand pays the agreed amount through Pearup. Funds are held — creator receives nothing yet." },
+              { step: "02", text: "Creator delivers the content and submits the post link inside the deal." },
+              { step: "03", text: "Brand has 48 hours to dispute. No dispute = payment releases automatically." },
+              { step: "04", text: "Pearup deducts its 12% fee. The remaining balance is sent to the creator within 3–5 business days." },
+            ].map(({ step, text }) => (
+              <div key={step} style={{ display: "flex", gap: "16px", marginBottom: "14px", alignItems: "flex-start" }}>
+                <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#c9a96e", flexShrink: 0, paddingTop: "3px" }}>{step}</span>
+                <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.5)", lineHeight: "1.7", margin: "0" }}>{text}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {dealsLoading ? (
           <p style={{ color: "#c9a96e", fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", textAlign: "center", padding: "40px 0" }}>Loading...</p>
