@@ -148,6 +148,7 @@ export default function Dashboard() {
         .single();
 
       if (!data) { router.push("/onboarding"); return; }
+      if (data.user_type === "admin") { router.push("/admin"); return; }
       setProfile(data);
       setLoading(false);
 

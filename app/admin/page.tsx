@@ -1,0 +1,249 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+
+type Tab = "users" | "creators" | "brands" | "deals" | "messages";
+
+type User = { id: string; full_name: string | null; user_type: string };
+type Creator = { id: string; full_name: string | null; bio: string | null; niche: string[]; platforms: string[]; follower_count: number | null; rate_per_post: number | null };
+type Brand = { id: string; brand_name: string; description: string | null; industry: string[]; budget_min: number | null };
+type Deal = { id: string; brand_name: string; creator_name: string; message: string; budget: string | null; status: string; payment_status: string | null; created_at: string };
+type Message = { id: string; deal_id: string; sender_id: string; content: string; type: string; created_at: string };
+
+const statusColor = (s: string) => s === "accepted" ? "#4ade80" : s === "declined" ? "rgba(255,100,100,0.7)" : "#c9a96e";
+const typeColor = (t: string) => t === "creator" ? "#c9a96e" : t === "brand" ? "rgba(255,255,255,0.7)" : "#a78bfa";
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ display: "flex", gap: "8px", alignItems: "baseline" }}>
+      <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", flexShrink: 0, minWidth: "80px" }}>{label}</span>
+      <span style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.7)" }}>{value}</span>
+    </div>
+  );
+}
+
+function Card({ children }: { children: React.ReactNode }) {
+  return <div style={{ border: "1px solid rgba(255,255,255,0.08)", padding: "18px", backgroundColor: "rgba(255,255,255,0.02)", display: "flex", flexDirection: "column", gap: "8px" }}>{children}</div>;
+}
+
+function Badge({ text, color }: { text: string; color: string }) {
+  return <span style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", textTransform: "uppercase", color, border: `1px solid ${color}`, padding: "2px 8px", alignSelf: "flex-start" }}>{text}</span>;
+}
+
+export default function AdminPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<Tab>("users");
+  const [tabLoading, setTabLoading] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [creators, setCreators] = useState<Creator[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  useEffect(() => {
+    async function checkAdmin() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.push("/login"); return; }
+      const { data: profile } = await supabase.from("profiles").select("user_type").eq("id", user.id).single();
+      if (!profile || profile.user_type !== "admin") { router.push("/dashboard"); return; }
+      setLoading(false);
+      loadTab("users");
+    }
+    checkAdmin();
+  }, [router]);
+
+  async function loadTab(tab: Tab) {
+    setTabLoading(true);
+    setActiveTab(tab);
+
+    if (tab === "users") {
+      const { data } = await supabase.from("profiles").select("id, full_name, user_type").order("user_type");
+      setUsers(data || []);
+    } else if (tab === "creators") {
+      const { data } = await supabase
+        .from("creator_profiles")
+        .select("id, bio, niche, platforms, follower_count, rate_per_post, profiles(full_name)");
+      setCreators((data || []).map((c: any) => ({
+        id: c.id,
+        full_name: c.profiles?.full_name || null,
+        bio: c.bio,
+        niche: c.niche || [],
+        platforms: c.platforms || [],
+        follower_count: c.follower_count,
+        rate_per_post: c.rate_per_post,
+      })));
+    } else if (tab === "brands") {
+      const { data } = await supabase.from("brand_profiles").select("id, brand_name, description, industry, budget_min");
+      setBrands(data || []);
+    } else if (tab === "deals") {
+      const { data } = await supabase.from("deals").select("id, brand_id, creator_id, message, budget, status, payment_status, created_at").order("created_at", { ascending: false });
+      if (data && data.length > 0) {
+        const brandIds = [...new Set(data.map(d => d.brand_id))];
+        const creatorIds = [...new Set(data.map(d => d.creator_id))];
+        const [{ data: bd }, { data: cd }] = await Promise.all([
+          supabase.from("brand_profiles").select("id, brand_name").in("id", brandIds),
+          supabase.from("profiles").select("id, full_name").in("id", creatorIds),
+        ]);
+        const bMap: Record<string, string> = {};
+        bd?.forEach((b: any) => { bMap[b.id] = b.brand_name; });
+        const cMap: Record<string, string> = {};
+        cd?.forEach((c: any) => { cMap[c.id] = c.full_name || "Creator"; });
+        setDeals(data.map(d => ({ id: d.id, brand_name: bMap[d.brand_id] || "Unknown", creator_name: cMap[d.creator_id] || "Unknown", message: d.message, budget: d.budget, status: d.status, payment_status: d.payment_status, created_at: d.created_at })));
+      } else {
+        setDeals([]);
+      }
+    } else if (tab === "messages") {
+      const { data } = await supabase.from("messages").select("id, deal_id, sender_id, content, type, created_at").order("created_at", { ascending: false }).limit(300);
+      setMessages(data || []);
+    }
+
+    setTabLoading(false);
+  }
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <p style={{ color: "#c9a96e", fontFamily: "Arial", fontSize: "11px", letterSpacing: "4px", textTransform: "uppercase" }}>Loading...</p>
+      </div>
+    );
+  }
+
+  const tabs: Tab[] = ["users", "creators", "brands", "deals", "messages"];
+  const counts: Record<Tab, number> = { users: users.length, creators: creators.length, brands: brands.length, deals: deals.length, messages: messages.length };
+
+  return (
+    <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", color: "white", paddingBottom: "40px" }}>
+      {/* Header */}
+      <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div>
+          <p style={{ fontFamily: "Arial", fontSize: "16px", fontWeight: "700", letterSpacing: "4px", color: "#c9a96e", margin: "0 0 2px" }}>PEARUP</p>
+          <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "3px", color: "#a78bfa", textTransform: "uppercase", margin: "0" }}>Admin Overview</p>
+        </div>
+        <button onClick={async () => { await supabase.auth.signOut(); router.push("/"); }} style={{ background: "none", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.5)", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", padding: "8px 16px", cursor: "pointer" }}>
+          Log Out
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: "flex", borderBottom: "1px solid rgba(255,255,255,0.08)", overflowX: "auto" }}>
+        {tabs.map(tab => (
+          <button
+            key={tab}
+            onClick={() => loadTab(tab)}
+            style={{ flex: 1, minWidth: "80px", padding: "14px 8px", background: "none", border: "none", borderBottom: `2px solid ${activeTab === tab ? "#c9a96e" : "transparent"}`, color: activeTab === tab ? "#c9a96e" : "rgba(255,255,255,0.4)", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", cursor: "pointer" }}
+          >
+            {tab}{activeTab === tab && counts[tab] > 0 ? ` (${counts[tab]})` : ""}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ padding: "24px" }}>
+        {tabLoading ? (
+          <p style={{ color: "#c9a96e", fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", textAlign: "center", padding: "40px 0" }}>Loading...</p>
+        ) : (
+          <>
+            {/* USERS */}
+            {activeTab === "users" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "16px" }}>{users.length} accounts</p>
+                {users.length === 0 && <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No users found.</p>}
+                {users.map(u => (
+                  <Card key={u.id}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <p style={{ fontFamily: "Arial", fontSize: "14px", fontWeight: "600", color: "white", margin: "0" }}>{u.full_name || "—"}</p>
+                      <Badge text={u.user_type} color={typeColor(u.user_type)} />
+                    </div>
+                    <Row label="ID" value={u.id} />
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* CREATORS */}
+            {activeTab === "creators" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "16px" }}>{creators.length} creators</p>
+                {creators.length === 0 && <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No creators yet.</p>}
+                {creators.map(c => (
+                  <Card key={c.id}>
+                    <p style={{ fontFamily: "Arial", fontSize: "14px", fontWeight: "600", color: "white", margin: "0" }}>{c.full_name || "—"}</p>
+                    {c.bio && <Row label="Bio" value={c.bio} />}
+                    {c.platforms.length > 0 && <Row label="Platforms" value={c.platforms.join(", ")} />}
+                    {c.niche.length > 0 && <Row label="Niche" value={c.niche.join(", ")} />}
+                    {c.follower_count && <Row label="Followers" value={`${c.follower_count.toLocaleString()}`} />}
+                    {c.rate_per_post && <Row label="Rate" value={`$${c.rate_per_post.toLocaleString()}`} />}
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* BRANDS */}
+            {activeTab === "brands" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "16px" }}>{brands.length} brands</p>
+                {brands.length === 0 && <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No brands yet.</p>}
+                {brands.map(b => (
+                  <Card key={b.id}>
+                    <p style={{ fontFamily: "Arial", fontSize: "14px", fontWeight: "600", color: "white", margin: "0" }}>{b.brand_name}</p>
+                    {b.description && <Row label="About" value={b.description} />}
+                    {b.industry.length > 0 && <Row label="Industry" value={b.industry.join(", ")} />}
+                    {b.budget_min && <Row label="Budget" value={`$${b.budget_min.toLocaleString()}+`} />}
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* DEALS */}
+            {activeTab === "deals" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "16px" }}>{deals.length} deals</p>
+                {deals.length === 0 && <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No deals yet.</p>}
+                {deals.map(d => (
+                  <Card key={d.id}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <p style={{ fontFamily: "Arial", fontSize: "13px", fontWeight: "600", color: "white", margin: "0 0 2px" }}>{d.brand_name} → {d.creator_name}</p>
+                        {d.budget && <p style={{ fontFamily: "Arial", fontSize: "11px", color: "#c9a96e", margin: "0" }}>{d.budget}</p>}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-end" }}>
+                        <Badge text={d.status} color={statusColor(d.status)} />
+                        {d.payment_status === "paid" && <Badge text="paid" color="#4ade80" />}
+                      </div>
+                    </div>
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.5)", margin: "4px 0 0", lineHeight: "1.6" }}>"{d.message.length > 100 ? d.message.slice(0, 100) + "…" : d.message}"</p>
+                    <Row label="Date" value={new Date(d.created_at).toLocaleDateString()} />
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* MESSAGES */}
+            {activeTab === "messages" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "16px" }}>{messages.length} messages (latest 300)</p>
+                {messages.length === 0 && <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No messages yet.</p>}
+                {messages.map(m => (
+                  <div key={m.id} style={{ border: "1px solid rgba(255,255,255,0.06)", padding: "12px 16px", backgroundColor: "rgba(255,255,255,0.01)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
+                      <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>
+                        Deal {m.deal_id.slice(0, 8)}…
+                      </span>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        {m.type !== "text" && <Badge text={m.type} color="#c9a96e" />}
+                        <span style={{ fontFamily: "Arial", fontSize: "9px", color: "rgba(255,255,255,0.3)" }}>{new Date(m.created_at).toLocaleString()}</span>
+                      </div>
+                    </div>
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.65)", margin: "0", lineHeight: "1.5" }}>{m.content}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

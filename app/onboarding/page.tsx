@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -9,6 +9,16 @@ export default function Onboarding() {
   const [selected, setSelected] = useState<"brand" | "creator" | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function checkAdmin() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from("profiles").select("user_type").eq("id", user.id).single();
+      if (data?.user_type === "admin") router.push("/admin");
+    }
+    checkAdmin();
+  }, [router]);
 
   async function handleContinue() {
     if (!selected) return;
