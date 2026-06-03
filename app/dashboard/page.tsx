@@ -43,6 +43,7 @@ type Deal = {
   last_message_at: string | null;
   last_message_sender_id: string | null;
   shipping_address: string | null;
+  post_link: string | null;
   created_at: string;
   other_id: string;
   other_name: string;
@@ -138,6 +139,8 @@ export default function Dashboard() {
   const [offerDetails, setOfferDetails] = useState("");
   const [shippingInputs, setShippingInputs] = useState<Record<string, string>>({});
   const [submittingShipping, setSubmittingShipping] = useState<string | null>(null);
+  const [postLinkInputs, setPostLinkInputs] = useState<Record<string, string>>({});
+  const [submittingPostLink, setSubmittingPostLink] = useState<string | null>(null);
   const dealsLoadedRef = useRef(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const chatBottomRef = useRef<HTMLDivElement | null>(null);
@@ -234,7 +237,7 @@ export default function Dashboard() {
       setDealsLoading(true);
       const { data: dealData } = await supabase
         .from("deals")
-        .select("id, brand_id, creator_id, message, budget, status, payment_status, initiated_by, last_message_at, last_message_sender_id, shipping_address, created_at")
+        .select("id, brand_id, creator_id, message, budget, status, payment_status, initiated_by, last_message_at, last_message_sender_id, shipping_address, post_link, created_at")
         .or(`brand_id.eq.${userId},creator_id.eq.${userId}`)
         .order("created_at", { ascending: false });
 
@@ -264,7 +267,7 @@ export default function Dashboard() {
       const formatted: Deal[] = dealData.map(d => {
         const otherId = isBrandUser ? d.creator_id : d.brand_id;
         const other = profileMap[otherId] || { name: "Unknown", avatar_url: null };
-        return { id: d.id, brand_id: d.brand_id, creator_id: d.creator_id, message: d.message, budget: d.budget, status: d.status, payment_status: d.payment_status, initiated_by: d.initiated_by, last_message_at: d.last_message_at, last_message_sender_id: d.last_message_sender_id, shipping_address: d.shipping_address, created_at: d.created_at, other_id: otherId, other_name: other.name, other_avatar: other.avatar_url };
+        return { id: d.id, brand_id: d.brand_id, creator_id: d.creator_id, message: d.message, budget: d.budget, status: d.status, payment_status: d.payment_status, initiated_by: d.initiated_by, last_message_at: d.last_message_at, last_message_sender_id: d.last_message_sender_id, shipping_address: d.shipping_address, post_link: d.post_link, created_at: d.created_at, other_id: otherId, other_name: other.name, other_avatar: other.avatar_url };
       });
 
       setDeals(formatted);
@@ -430,6 +433,15 @@ export default function Dashboard() {
     await supabase.from("deals").update({ shipping_address: address }).eq("id", dealId);
     setDeals(prev => prev.map(d => d.id === dealId ? { ...d, shipping_address: address } : d));
     setSubmittingShipping(null);
+  }
+
+  async function handleSubmitPostLink(dealId: string) {
+    const link = postLinkInputs[dealId]?.trim();
+    if (!link) return;
+    setSubmittingPostLink(dealId);
+    await supabase.from("deals").update({ post_link: link }).eq("id", dealId);
+    setDeals(prev => prev.map(d => d.id === dealId ? { ...d, post_link: link } : d));
+    setSubmittingPostLink(null);
   }
 
   function filterByNiche(niche: string | null) {
@@ -784,6 +796,46 @@ export default function Dashboard() {
                         <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "rgba(255,255,255,0.75)", margin: "0", lineHeight: "1.7", whiteSpace: "pre-line" }}>{deal.shipping_address}</p>
                       </div>
                     )}
+                    {/* Post link — creator submits, brand sees */}
+                    {deal.payment_status === "paid" && !isBrand && !deal.post_link && (
+                      <div style={{ border: "1px solid rgba(201,169,110,0.2)", padding: "16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", margin: "0" }}>Step 2 — Submit Your Post Link</p>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.55)", margin: "0", lineHeight: "1.6" }}>Once your content is live, paste the link here. The brand will have 48 hours to review before your payment is released.</p>
+                        <input
+                          type="url"
+                          placeholder="https://www.tiktok.com/@you/video/..."
+                          value={postLinkInputs[deal.id] || ""}
+                          onChange={e => setPostLinkInputs(prev => ({ ...prev, [deal.id]: e.target.value }))}
+                          style={{ padding: "12px 14px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "white", fontSize: "13px", fontFamily: "Georgia, serif", outline: "none", width: "100%" }}
+                        />
+                        <button
+                          onClick={() => handleSubmitPostLink(deal.id)}
+                          disabled={!postLinkInputs[deal.id]?.trim() || submittingPostLink === deal.id}
+                          style={{ backgroundColor: postLinkInputs[deal.id]?.trim() ? "#c9a96e" : "rgba(201,169,110,0.3)", color: "#0a0a0a", padding: "12px", fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: postLinkInputs[deal.id]?.trim() ? "pointer" : "not-allowed" }}
+                        >
+                          {submittingPostLink === deal.id ? "Submitting..." : "Submit Post Link"}
+                        </button>
+                      </div>
+                    )}
+                    {deal.payment_status === "paid" && !isBrand && deal.post_link && (
+                      <div style={{ border: "1px solid rgba(74,222,128,0.2)", padding: "14px", backgroundColor: "rgba(74,222,128,0.04)" }}>
+                        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#4ade80", textTransform: "uppercase", margin: "0 0 6px" }}>✓ Post Submitted — Awaiting Brand Review</p>
+                        <a href={deal.post_link} target="_blank" rel="noopener noreferrer" style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "#c9a96e", wordBreak: "break-all" }}>{deal.post_link}</a>
+                      </div>
+                    )}
+                    {deal.payment_status === "paid" && isBrand && deal.post_link && (
+                      <div style={{ border: "1px solid rgba(201,169,110,0.3)", padding: "16px", backgroundColor: "rgba(201,169,110,0.04)" }}>
+                        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", margin: "0 0 8px" }}>Content Delivered — Review Now</p>
+                        <a href={deal.post_link} target="_blank" rel="noopener noreferrer" style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "white", wordBreak: "break-all", display: "block", marginBottom: "12px" }}>{deal.post_link}</a>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.45)", margin: "0", lineHeight: "1.6" }}>If the content doesn't match what was agreed, contact support within 48 hours to open a dispute. After 48 hours, payment releases automatically.</p>
+                      </div>
+                    )}
+                    {deal.payment_status === "paid" && isBrand && !deal.post_link && (
+                      <div style={{ border: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px" }}>
+                        <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", margin: "0" }}>Waiting for creator to submit their post…</p>
+                      </div>
+                    )}
+
                     {deal.payment_status === "paid" && isBrand && !deal.shipping_address && (
                       <div style={{ border: "1px solid rgba(255,255,255,0.06)", padding: "12px 14px" }}>
                         <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", color: "rgba(255,255,255,0.72)", textTransform: "uppercase", margin: "0" }}>Waiting for creator's shipping address…</p>
