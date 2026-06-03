@@ -44,6 +44,7 @@ type Deal = {
   last_message_sender_id: string | null;
   shipping_address: string | null;
   post_link: string | null;
+  content_status: "pending_review" | "approved" | "disputed" | null;
   created_at: string;
   other_id: string;
   other_name: string;
@@ -237,7 +238,7 @@ export default function Dashboard() {
       setDealsLoading(true);
       const { data: dealData } = await supabase
         .from("deals")
-        .select("id, brand_id, creator_id, message, budget, status, payment_status, initiated_by, last_message_at, last_message_sender_id, shipping_address, post_link, created_at")
+        .select("id, brand_id, creator_id, message, budget, status, payment_status, initiated_by, last_message_at, last_message_sender_id, shipping_address, post_link, content_status, created_at")
         .or(`brand_id.eq.${userId},creator_id.eq.${userId}`)
         .order("created_at", { ascending: false });
 
@@ -267,7 +268,7 @@ export default function Dashboard() {
       const formatted: Deal[] = dealData.map(d => {
         const otherId = isBrandUser ? d.creator_id : d.brand_id;
         const other = profileMap[otherId] || { name: "Unknown", avatar_url: null };
-        return { id: d.id, brand_id: d.brand_id, creator_id: d.creator_id, message: d.message, budget: d.budget, status: d.status, payment_status: d.payment_status, initiated_by: d.initiated_by, last_message_at: d.last_message_at, last_message_sender_id: d.last_message_sender_id, shipping_address: d.shipping_address, post_link: d.post_link, created_at: d.created_at, other_id: otherId, other_name: other.name, other_avatar: other.avatar_url };
+        return { id: d.id, brand_id: d.brand_id, creator_id: d.creator_id, message: d.message, budget: d.budget, status: d.status, payment_status: d.payment_status, initiated_by: d.initiated_by, last_message_at: d.last_message_at, last_message_sender_id: d.last_message_sender_id, shipping_address: d.shipping_address, post_link: d.post_link, content_status: d.content_status, created_at: d.created_at, other_id: otherId, other_name: other.name, other_avatar: other.avatar_url };
       });
 
       setDeals(formatted);
@@ -439,9 +440,14 @@ export default function Dashboard() {
     const link = postLinkInputs[dealId]?.trim();
     if (!link) return;
     setSubmittingPostLink(dealId);
-    await supabase.from("deals").update({ post_link: link }).eq("id", dealId);
-    setDeals(prev => prev.map(d => d.id === dealId ? { ...d, post_link: link } : d));
+    await supabase.from("deals").update({ post_link: link, content_status: "pending_review" }).eq("id", dealId);
+    setDeals(prev => prev.map(d => d.id === dealId ? { ...d, post_link: link, content_status: "pending_review" } : d));
     setSubmittingPostLink(null);
+  }
+
+  async function handleContentReview(dealId: string, decision: "approved" | "disputed") {
+    await supabase.from("deals").update({ content_status: decision }).eq("id", dealId);
+    setDeals(prev => prev.map(d => d.id === dealId ? { ...d, content_status: decision } : d));
   }
 
   function filterByNiche(niche: string | null) {
@@ -817,17 +823,66 @@ export default function Dashboard() {
                         </button>
                       </div>
                     )}
-                    {deal.payment_status === "paid" && !isBrand && deal.post_link && (
+                    {deal.payment_status === "paid" && !isBrand && deal.post_link && deal.content_status === "pending_review" && (
                       <div style={{ border: "1px solid rgba(74,222,128,0.2)", padding: "14px", backgroundColor: "rgba(74,222,128,0.04)" }}>
                         <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#4ade80", textTransform: "uppercase", margin: "0 0 6px" }}>✓ Post Submitted — Awaiting Brand Review</p>
                         <a href={deal.post_link} target="_blank" rel="noopener noreferrer" style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "#c9a96e", wordBreak: "break-all" }}>{deal.post_link}</a>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.4)", margin: "8px 0 0", lineHeight: "1.6" }}>You can still message the brand if they need any adjustments.</p>
                       </div>
                     )}
-                    {deal.payment_status === "paid" && isBrand && deal.post_link && (
-                      <div style={{ border: "1px solid rgba(201,169,110,0.3)", padding: "16px", backgroundColor: "rgba(201,169,110,0.04)" }}>
-                        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", margin: "0 0 8px" }}>Content Delivered — Review Now</p>
-                        <a href={deal.post_link} target="_blank" rel="noopener noreferrer" style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "white", wordBreak: "break-all", display: "block", marginBottom: "12px" }}>{deal.post_link}</a>
-                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.45)", margin: "0", lineHeight: "1.6" }}>If the content doesn't match what was agreed, contact support within 48 hours to open a dispute. After 48 hours, payment releases automatically.</p>
+                    {deal.payment_status === "paid" && !isBrand && deal.content_status === "approved" && (
+                      <div style={{ border: "1px solid rgba(74,222,128,0.3)", padding: "14px", backgroundColor: "rgba(74,222,128,0.06)" }}>
+                        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#4ade80", textTransform: "uppercase", margin: "0 0 4px" }}>✓ Content Approved</p>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.55)", margin: "0" }}>Your payment is being processed and will arrive within 3–5 business days.</p>
+                      </div>
+                    )}
+                    {deal.payment_status === "paid" && !isBrand && deal.content_status === "disputed" && (
+                      <div style={{ border: "1px solid rgba(255,100,100,0.3)", padding: "14px", backgroundColor: "rgba(255,100,100,0.04)" }}>
+                        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,100,100,0.8)", textTransform: "uppercase", margin: "0 0 4px" }}>Brand Opened a Dispute</p>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.55)", margin: "0", lineHeight: "1.6" }}>Message the brand to resolve it, or contact Pearup support. If you repost, submit a new link below.</p>
+                        <label style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", display: "block", marginTop: "12px", marginBottom: "6px" }}>Resubmit Post Link</label>
+                        <input
+                          type="url"
+                          placeholder="https://www.tiktok.com/@you/video/..."
+                          value={postLinkInputs[deal.id] || ""}
+                          onChange={e => setPostLinkInputs(prev => ({ ...prev, [deal.id]: e.target.value }))}
+                          style={{ padding: "10px 12px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "white", fontSize: "13px", fontFamily: "Georgia, serif", outline: "none", width: "100%", marginBottom: "8px" }}
+                        />
+                        <button
+                          onClick={() => handleSubmitPostLink(deal.id)}
+                          disabled={!postLinkInputs[deal.id]?.trim() || submittingPostLink === deal.id}
+                          style={{ backgroundColor: postLinkInputs[deal.id]?.trim() ? "#c9a96e" : "rgba(201,169,110,0.3)", color: "#0a0a0a", padding: "10px 20px", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: postLinkInputs[deal.id]?.trim() ? "pointer" : "not-allowed" }}
+                        >
+                          {submittingPostLink === deal.id ? "Submitting..." : "Resubmit"}
+                        </button>
+                      </div>
+                    )}
+                    {deal.payment_status === "paid" && isBrand && deal.post_link && deal.content_status === "pending_review" && (
+                      <div style={{ border: "1px solid rgba(201,169,110,0.3)", padding: "16px", backgroundColor: "rgba(201,169,110,0.04)", display: "flex", flexDirection: "column", gap: "12px" }}>
+                        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", margin: "0" }}>Content Delivered — Review Now</p>
+                        <a href={deal.post_link} target="_blank" rel="noopener noreferrer" style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "white", wordBreak: "break-all" }}>{deal.post_link}</a>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.4)", margin: "0", lineHeight: "1.6" }}>Need adjustments? Message the creator first. If content doesn't match the deal at all, open a dispute.</p>
+                        <div style={{ display: "flex", gap: "10px" }}>
+                          <button
+                            onClick={() => handleContentReview(deal.id, "disputed")}
+                            style={{ flex: 1, background: "none", border: "1px solid rgba(255,100,100,0.3)", color: "rgba(255,100,100,0.8)", padding: "12px", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", cursor: "pointer" }}
+                          >Dispute</button>
+                          <button
+                            onClick={() => handleContentReview(deal.id, "approved")}
+                            style={{ flex: 2, backgroundColor: "#4ade80", color: "#0a0a0a", padding: "12px", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer" }}
+                          >Approve & Release Payment</button>
+                        </div>
+                      </div>
+                    )}
+                    {deal.payment_status === "paid" && isBrand && deal.content_status === "approved" && (
+                      <div style={{ border: "1px solid rgba(74,222,128,0.2)", padding: "12px 14px", backgroundColor: "rgba(74,222,128,0.04)" }}>
+                        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#4ade80", textTransform: "uppercase", margin: "0" }}>✓ You Approved This Content</p>
+                      </div>
+                    )}
+                    {deal.payment_status === "paid" && isBrand && deal.content_status === "disputed" && (
+                      <div style={{ border: "1px solid rgba(255,100,100,0.2)", padding: "12px 14px", backgroundColor: "rgba(255,100,100,0.04)" }}>
+                        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,100,100,0.8)", textTransform: "uppercase", margin: "0 0 4px" }}>Dispute Open</p>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.45)", margin: "0" }}>Pearup has been notified. You can also message the creator directly to resolve it.</p>
                       </div>
                     )}
                     {deal.payment_status === "paid" && isBrand && !deal.post_link && (
