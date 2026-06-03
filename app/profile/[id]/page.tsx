@@ -273,16 +273,14 @@ export default function ProfilePage() {
                 </button>
                 <button
                   onClick={() => setShowFeeInfo(f => !f)}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: "none", border: "none", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "12px 0", marginTop: "16px", cursor: "pointer" }}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", background: "none", border: "none", padding: "14px 0", marginTop: "4px", cursor: "pointer" }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ color: "#c9a96e", fontSize: "12px" }}>ⓘ</span>
-                    <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Pearup takes 12% commission</span>
-                  </div>
+                  <span style={{ color: "#c9a96e", fontSize: "12px" }}>ⓘ</span>
+                  <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Pearup takes 12% commission</span>
                   <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px", transform: showFeeInfo ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }}>▾</span>
                 </button>
                 {showFeeInfo && (
-                  <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.45)", lineHeight: "1.8", margin: "12px 0 0", paddingBottom: "8px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.45)", lineHeight: "1.8", margin: "0 0 16px", textAlign: "center" }}>
                     Pearup charges a 12% platform fee on every completed deal. This is automatically deducted from the agreed budget before the creator receives payment. Both parties agree to this fee by using the platform.
                   </p>
                 )}
