@@ -121,6 +121,9 @@ export default function Dashboard() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [filteredBrands, setFilteredBrands] = useState<Brand[]>([]);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [activePlatform, setActivePlatform] = useState<string | null>(null);
+  const [activeFollower, setActiveFollower] = useState<number | null>(null);
+  const [activeRate, setActiveRate] = useState<number | null>(null);
   const [discoverLoading, setDiscoverLoading] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -456,13 +459,37 @@ export default function Dashboard() {
     setDeals(prev => prev.map(d => d.id === dealId ? { ...d, content_status: decision } : d));
   }
 
+  function applyCreatorFilters(niche: string | null, platform: string | null, follower: number | null, rate: number | null) {
+    let result = creators;
+    if (niche) result = result.filter(c => c.niche.includes(niche));
+    if (platform) result = result.filter(c => c.platforms.includes(platform));
+    if (follower) result = result.filter(c => c.follower_count === follower);
+    if (rate) result = result.filter(c => c.rate_per_post === rate);
+    setFilteredCreators(result);
+  }
+
   function filterByNiche(niche: string | null) {
     setActiveFilter(niche);
     if (profile?.user_type === "brand") {
-      setFilteredCreators(niche ? creators.filter(c => c.niche.includes(niche)) : creators);
+      applyCreatorFilters(niche, activePlatform, activeFollower, activeRate);
     } else {
       setFilteredBrands(niche ? brands.filter(b => b.industry.includes(niche)) : brands);
     }
+  }
+
+  function filterByPlatform(platform: string | null) {
+    setActivePlatform(platform);
+    applyCreatorFilters(activeFilter, platform, activeFollower, activeRate);
+  }
+
+  function filterByFollower(follower: number | null) {
+    setActiveFollower(follower);
+    applyCreatorFilters(activeFilter, activePlatform, follower, activeRate);
+  }
+
+  function filterByRate(rate: number | null) {
+    setActiveRate(rate);
+    applyCreatorFilters(activeFilter, activePlatform, activeFollower, rate);
   }
 
   async function handleLogout() {
@@ -577,12 +604,43 @@ export default function Dashboard() {
         <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "24px" }}>
           {"The easiest way to collab, get paid, and grow."}
         </p>
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "32px" }}>
-          <button onClick={() => filterByNiche(null)} style={filterStyle(!activeFilter)}>All</button>
-          {NICHES.map(niche => (
-            <button key={niche} onClick={() => filterByNiche(niche)} style={filterStyle(activeFilter === niche)}>{niche}</button>
-          ))}
+        {/* Niche filter — both sides */}
+        <div style={{ marginBottom: isBrand ? "12px" : "32px" }}>
+          {isBrand && <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: "0 0 8px" }}>Niche</p>}
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <button onClick={() => filterByNiche(null)} style={filterStyle(!activeFilter)}>All</button>
+            {NICHES.map(n => <button key={n} onClick={() => filterByNiche(n)} style={filterStyle(activeFilter === n)}>{n}</button>)}
+          </div>
         </div>
+
+        {/* Extra filters — brands only */}
+        {isBrand && (
+          <>
+            <div style={{ marginBottom: "12px" }}>
+              <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: "0 0 8px" }}>Platform</p>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <button onClick={() => filterByPlatform(null)} style={filterStyle(!activePlatform)}>All</button>
+                {["Instagram", "TikTok", "YouTube", "Pinterest"].map(p => <button key={p} onClick={() => filterByPlatform(p)} style={filterStyle(activePlatform === p)}>{p}</button>)}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: "12px" }}>
+              <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: "0 0 8px" }}>Followers</p>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <button onClick={() => filterByFollower(null)} style={filterStyle(!activeFollower)}>All</button>
+                {[{ label: "1K – 10K", min: 1000 }, { label: "10K – 50K", min: 10000 }, { label: "50K – 100K", min: 50000 }, { label: "100K – 500K", min: 100000 }, { label: "500K+", min: 500000 }].map(r => <button key={r.min} onClick={() => filterByFollower(r.min)} style={filterStyle(activeFollower === r.min)}>{r.label}</button>)}
+              </div>
+            </div>
+
+            <div style={{ marginBottom: "32px" }}>
+              <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: "0 0 8px" }}>Rate per Post</p>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <button onClick={() => filterByRate(null)} style={filterStyle(!activeRate)}>All</button>
+                {[{ label: "$100 – $500", min: 100 }, { label: "$500 – $1K", min: 500 }, { label: "$1K – $5K", min: 1000 }, { label: "$5K – $15K", min: 5000 }, { label: "$15K+", min: 15000 }].map(r => <button key={r.min} onClick={() => filterByRate(r.min)} style={filterStyle(activeRate === r.min)}>{r.label}</button>)}
+              </div>
+            </div>
+          </>
+        )}
         {discoverLoading ? (
           <p style={{ color: "#c9a96e", fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", textAlign: "center", padding: "40px 0" }}>Loading...</p>
         ) : isBrand ? (
