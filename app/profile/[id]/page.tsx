@@ -253,13 +253,7 @@ export default function ProfilePage() {
         )}
 
         {/* Locked contact info */}
-        <div style={{ border: "1px solid rgba(255,255,255,0.06)", padding: "20px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ fontSize: "18px" }}>🔒</span>
-          <div>
-            <p style={{ fontFamily: "Arial", fontSize: "11px", color: "rgba(255,255,255,0.4)", letterSpacing: "1px", margin: "0 0 4px" }}>Contact info hidden</p>
-            <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.25)", margin: "0" }}>Unlocked once a deal is made inside Pearup.</p>
-          </div>
-        </div>
+        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.25)", textTransform: "uppercase", textAlign: "center", margin: "0 0 20px" }}>🔒 Contact unlocked after a deal</p>
         {/* Action button */}
         {!dealSent ? (
           !showDealForm ? (
