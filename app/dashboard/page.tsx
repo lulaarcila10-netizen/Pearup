@@ -142,6 +142,7 @@ export default function Dashboard() {
   const [submittingShipping, setSubmittingShipping] = useState<string | null>(null);
   const [postLinkInputs, setPostLinkInputs] = useState<Record<string, string>>({});
   const [submittingPostLink, setSubmittingPostLink] = useState<string | null>(null);
+  const [hasPayoutMethod, setHasPayoutMethod] = useState<boolean | null>(null);
   const dealsLoadedRef = useRef(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const chatBottomRef = useRef<HTMLDivElement | null>(null);
@@ -272,6 +273,11 @@ export default function Dashboard() {
       });
 
       setDeals(formatted);
+
+      if (!isBrandUser) {
+        const { data: cpData } = await supabase.from("creator_profiles").select("payout_method").eq("id", userId!).single();
+        setHasPayoutMethod(!!(cpData?.payout_method));
+      }
 
       const dealIds = formatted.map(d => d.id);
       if (dealIds.length > 0) {
@@ -766,6 +772,17 @@ export default function Dashboard() {
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", border: "1px solid rgba(74,222,128,0.3)", backgroundColor: "rgba(74,222,128,0.05)" }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>
                         <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", color: "#4ade80", textTransform: "uppercase", margin: "0" }}>Payment Received</p>
+                      </div>
+                    )}
+
+                    {deal.payment_status === "paid" && !isBrand && hasPayoutMethod === false && (
+                      <div style={{ border: "1px solid rgba(255,149,0,0.4)", backgroundColor: "rgba(255,149,0,0.05)", padding: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#ff9500", textTransform: "uppercase", margin: "0" }}>⚠ Add Your Payout Method</p>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.55)", margin: "0", lineHeight: "1.6" }}>So Pearup knows where to send your money once the brand approves your post. Takes 10 seconds.</p>
+                        <button
+                          onClick={() => router.push("/edit-profile/creator")}
+                          style={{ backgroundColor: "#ff9500", color: "#0a0a0a", padding: "10px 20px", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer", alignSelf: "flex-start" }}
+                        >Add Payout Method →</button>
                       </div>
                     )}
 
