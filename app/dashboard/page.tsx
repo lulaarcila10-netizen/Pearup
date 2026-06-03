@@ -643,6 +643,20 @@ export default function Dashboard() {
           Your proposals & partnerships.
         </p>
 
+        <div style={{ border: "1px solid rgba(201,169,110,0.2)", backgroundColor: "rgba(201,169,110,0.04)", padding: "16px 18px", marginBottom: "24px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+            <span style={{ color: "#c9a96e", fontSize: "13px" }}>ⓘ</span>
+            <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", margin: "0", fontWeight: "700" }}>How Payment Works</p>
+          </div>
+          <ol style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.6)", lineHeight: "1.9", margin: "0", paddingLeft: "18px" }}>
+            <li>Brand pays the full deal amount through Pearup when a deal is accepted.</li>
+            <li>Funds are held securely — the creator does not receive payment yet.</li>
+            <li>Creator posts the content and submits the link inside the deal.</li>
+            <li>Brand has <strong style={{ color: "rgba(255,255,255,0.85)" }}>48 hours</strong> to dispute. If no dispute, payment is released automatically.</li>
+            <li>Pearup deducts its <strong style={{ color: "#c9a96e" }}>12% platform fee</strong> and the remaining balance goes to the creator.</li>
+          </ol>
+        </div>
+
         {dealsLoading ? (
           <p style={{ color: "#c9a96e", fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", textAlign: "center", padding: "40px 0" }}>Loading...</p>
         ) : deals.length === 0 ? (
