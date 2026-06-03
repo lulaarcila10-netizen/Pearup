@@ -986,8 +986,13 @@ export default function Dashboard() {
           </button>
         )}
 
-        <p style={{ fontFamily: "Arial", fontSize: "18px", fontWeight: "600", color: "white", marginBottom: "4px", marginTop: "8px" }}>{isBrand ? (brandName || "—") : (profile?.full_name || "—")}</p>
-        <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", marginBottom: "24px" }}>{isBrand ? "Brand" : "Creator"}</p>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "8px", marginBottom: "24px" }}>
+          <div>
+            <p style={{ fontFamily: "Arial", fontSize: "18px", fontWeight: "600", color: "white", marginBottom: "4px", margin: "0 0 4px" }}>{isBrand ? (brandName || "—") : (profile?.full_name || "—")}</p>
+            <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", margin: "0" }}>{isBrand ? "Brand" : "Creator"}</p>
+          </div>
+          <button onClick={() => router.push(isBrand ? "/edit-profile/brand" : "/edit-profile/creator")} style={{ background: "none", border: "1px solid rgba(201,169,110,0.35)", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", padding: "6px 12px", cursor: "pointer", flexShrink: 0 }}>Edit Profile</button>
+        </div>
 
         {!isBrand && creatorStats !== null && (() => {
           let score = 0;
@@ -1045,10 +1050,6 @@ export default function Dashboard() {
             })}
           </div>
         </div>
-
-        <button onClick={() => router.push(isBrand ? "/edit-profile/brand" : "/edit-profile/creator")} style={{ backgroundColor: "#c9a96e", color: "#0a0a0a", fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", padding: "14px 32px", border: "none", cursor: "pointer", marginBottom: "12px", width: "100%", maxWidth: "280px" }}>
-          Edit Profile
-        </button>
 
         <button onClick={handleLogout} style={{ border: "1px solid rgba(255,255,255,0.15)", background: "none", color: "rgba(255,255,255,0.65)", fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", padding: "14px 32px", cursor: "pointer" }}>
           Log Out
