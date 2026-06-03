@@ -64,6 +64,7 @@ export default function ProfilePage() {
   const [dealSent, setDealSent] = useState(false);
   const [viewerId, setViewerId] = useState<string | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioImage[]>([]);
+  const [showFeeInfo, setShowFeeInfo] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -259,21 +260,33 @@ export default function ProfilePage() {
             <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.25)", margin: "0" }}>Unlocked once a deal is made inside Pearup.</p>
           </div>
         </div>
-        <div style={{ border: "1px solid rgba(201,169,110,0.12)", padding: "14px 18px", marginBottom: "32px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "1px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", margin: "0" }}>Pearup Platform Fee</p>
-          <p style={{ fontFamily: "Arial", fontSize: "13px", fontWeight: "700", color: "#c9a96e", margin: "0" }}>12%</p>
-        </div>
-
         {/* Action button */}
         {!dealSent ? (
           !showDealForm ? (
             (canSendDeal || canPitch) && (
-              <button
-                onClick={() => setShowDealForm(true)}
-                style={{ width: "100%", backgroundColor: "#c9a96e", color: "#0a0a0a", padding: "18px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer" }}
-              >
-                {canSendDeal ? "Send Deal Proposal" : "Pitch Yourself"}
-              </button>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
+                <button
+                  onClick={() => setShowDealForm(true)}
+                  style={{ width: "100%", backgroundColor: "#c9a96e", color: "#0a0a0a", padding: "18px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer" }}
+                >
+                  {canSendDeal ? "Send Deal Proposal" : "Pitch Yourself"}
+                </button>
+                <button
+                  onClick={() => setShowFeeInfo(f => !f)}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: "none", border: "none", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "12px 0", marginTop: "16px", cursor: "pointer" }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ color: "#c9a96e", fontSize: "12px" }}>ⓘ</span>
+                    <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Pearup takes 12% commission</span>
+                  </div>
+                  <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px", transform: showFeeInfo ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }}>▾</span>
+                </button>
+                {showFeeInfo && (
+                  <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.45)", lineHeight: "1.8", margin: "12px 0 0", paddingBottom: "8px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                    Pearup charges a 12% platform fee on every completed deal. This is automatically deducted from the agreed budget before the creator receives payment. Both parties agree to this fee by using the platform.
+                  </p>
+                )}
+              </div>
             )
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
@@ -288,25 +301,13 @@ export default function ProfilePage() {
                 style={{ padding: "14px 18px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "white", fontSize: "14px", fontFamily: "Georgia, serif", outline: "none", resize: "none" }}
               />
               {canSendDeal && (
-                <>
-                  <input
-                    type="text"
-                    placeholder="Your budget offer e.g. $500"
-                    value={dealBudget}
-                    onChange={e => setDealBudget(e.target.value)}
-                    style={{ padding: "14px 18px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "white", fontSize: "14px", fontFamily: "Georgia, serif", outline: "none" }}
-                  />
-                  <div style={{ padding: "12px 16px", backgroundColor: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.2)" }}>
-                    <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "1px", color: "#c9a96e", textTransform: "uppercase", margin: "0 0 4px" }}>Platform Fee</p>
-                    <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.6)", margin: "0", lineHeight: "1.6" }}>Pearup charges a 12% platform fee on every deal. This is deducted from the agreed budget at the time of payment.</p>
-                  </div>
-                </>
-              )}
-              {canPitch && (
-                <div style={{ padding: "12px 16px", backgroundColor: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.2)" }}>
-                  <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "1px", color: "#c9a96e", textTransform: "uppercase", margin: "0 0 4px" }}>Platform Fee</p>
-                  <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.6)", margin: "0", lineHeight: "1.6" }}>Pearup charges a 12% platform fee on every deal, deducted from the agreed budget at the time of payment.</p>
-                </div>
+                <input
+                  type="text"
+                  placeholder="Your budget offer e.g. $500"
+                  value={dealBudget}
+                  onChange={e => setDealBudget(e.target.value)}
+                  style={{ padding: "14px 18px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "white", fontSize: "14px", fontFamily: "Georgia, serif", outline: "none" }}
+                />
               )}
               <div style={{ padding: "12px 16px", backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.4)", margin: "0", lineHeight: "1.6" }}>
