@@ -617,7 +617,7 @@ export default function Dashboard() {
                 key={label}
                 value={value}
                 onChange={e => onChange(e.target.value)}
-                style={{ padding: "13px 10px", backgroundColor: value ? "rgba(201,169,110,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${value ? "#c9a96e" : "rgba(201,169,110,0.35)"}`, color: "#c9a96e", fontFamily: "Arial", fontSize: "11px", outline: "none", cursor: "pointer" }}
+                style={{ padding: "13px 10px", backgroundColor: "rgba(255,255,255,0.05)", border: `1px solid ${value ? "#c9a96e" : "rgba(201,169,110,0.35)"}`, color: "#c9a96e", fontFamily: "Arial", fontSize: "11px", outline: "none", cursor: "pointer", borderRadius: "0" }}
               >
                 <option value="" style={{ backgroundColor: "#0a0a0a" }}>{label}</option>
                 {options.map((o: any) => typeof o === "string"
