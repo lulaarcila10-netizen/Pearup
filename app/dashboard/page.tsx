@@ -606,27 +606,25 @@ export default function Dashboard() {
         </p>
         {/* Filters */}
         {isBrand ? (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "28px" }}>
+          <div style={{ display: "flex", gap: "8px", marginBottom: "28px", overflowX: "auto" }}>
             {[
               { label: "Niche", value: activeFilter || "", onChange: (v: string) => filterByNiche(v || null), options: NICHES },
               { label: "Platform", value: activePlatform || "", onChange: (v: string) => filterByPlatform(v || null), options: ["Instagram", "TikTok", "YouTube", "Pinterest"] },
               { label: "Followers", value: activeFollower?.toString() || "", onChange: (v: string) => filterByFollower(v ? Number(v) : null), options: [{ label: "1K – 10K", value: "1000" }, { label: "10K – 50K", value: "10000" }, { label: "50K – 100K", value: "50000" }, { label: "100K – 500K", value: "100000" }, { label: "500K+", value: "500000" }] },
               { label: "Rate / Post", value: activeRate?.toString() || "", onChange: (v: string) => filterByRate(v ? Number(v) : null), options: [{ label: "$100 – $500", value: "100" }, { label: "$500 – $1K", value: "500" }, { label: "$1K – $5K", value: "1000" }, { label: "$5K – $15K", value: "5000" }, { label: "$15K+", value: "15000" }] },
             ].map(({ label, value, onChange, options }) => (
-              <div key={label} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <label style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>{label}</label>
-                <select
-                  value={value}
-                  onChange={e => onChange(e.target.value)}
-                  style={{ padding: "9px 10px", backgroundColor: "rgba(255,255,255,0.05)", border: `1px solid ${value ? "#c9a96e" : "rgba(255,255,255,0.12)"}`, color: value ? "#c9a96e" : "rgba(255,255,255,0.65)", fontFamily: "Arial", fontSize: "10px", outline: "none", cursor: "pointer", appearance: "none", WebkitAppearance: "none" }}
-                >
-                  <option value="" style={{ backgroundColor: "#0a0a0a" }}>All</option>
-                  {options.map((o: any) => typeof o === "string"
-                    ? <option key={o} value={o} style={{ backgroundColor: "#0a0a0a" }}>{o}</option>
-                    : <option key={o.value} value={o.value} style={{ backgroundColor: "#0a0a0a" }}>{o.label}</option>
-                  )}
-                </select>
-              </div>
+              <select
+                key={label}
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                style={{ flex: 1, minWidth: "0", padding: "13px 10px", backgroundColor: "rgba(255,255,255,0.05)", border: `1px solid ${value ? "#c9a96e" : "rgba(255,255,255,0.15)"}`, color: value ? "#c9a96e" : "rgba(255,255,255,0.55)", fontFamily: "Arial", fontSize: "11px", outline: "none", cursor: "pointer" }}
+              >
+                <option value="" style={{ backgroundColor: "#0a0a0a" }}>{label}</option>
+                {options.map((o: any) => typeof o === "string"
+                  ? <option key={o} value={o} style={{ backgroundColor: "#0a0a0a" }}>{o}</option>
+                  : <option key={o.value} value={o.value} style={{ backgroundColor: "#0a0a0a" }}>{o.label}</option>
+                )}
+              </select>
             ))}
           </div>
         ) : (
