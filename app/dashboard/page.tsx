@@ -317,7 +317,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!showSupport || !userId) return;
     supabase.from("support_messages").select("id, sender_type, content, created_at").eq("user_id", userId).order("created_at", { ascending: true }).then(({ data }) => setSupportMessages(data || []));
-    supabase.from("support_messages").update({ read_by_user: true }).eq("user_id", userId).eq("sender_type", "admin").eq("read_by_user", false);
+    supabase.from("support_messages").update({ read_by_user: true }).eq("user_id", userId).eq("sender_type", "admin").eq("read_by_user", false).then(() => {});
     setSupportUnread(0);
     const ch = supabase.channel(`support-${userId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "support_messages", filter: `user_id=eq.${userId}` }, payload => {
@@ -699,6 +699,13 @@ export default function Dashboard() {
                   </div>
                 )}
 
+                {deal.status === "accepted" && !isBrand && (
+                  <div style={{ padding: "10px 14px", backgroundColor: "rgba(201,169,110,0.05)", border: "1px solid rgba(201,169,110,0.15)" }}>
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.45)", margin: "0", lineHeight: "1.6" }}>
+                      FTC reminder: You must disclose this as a paid partnership in your content (e.g. #ad, #sponsored, or "Paid partnership with [Brand]").
+                    </p>
+                  </div>
+                )}
                 {deal.status === "accepted" && (
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     {isBrand && deal.payment_status !== "paid" && deal.budget && (
@@ -1064,7 +1071,7 @@ export default function Dashboard() {
         <p style={{ fontFamily: "Arial", fontSize: "16px", fontWeight: "700", letterSpacing: "4px", color: "#c9a96e", margin: "0" }}>PEARUP</p>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", margin: "0" }}>{isBrand ? "Brand" : "Creator"}</p>
-          <button onClick={() => setShowSupport(true)} style={{ position: "relative", background: "none", border: "1px solid rgba(201,169,110,0.35)", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", padding: "6px 12px", cursor: "pointer" }}>
+          <button onClick={() => { setShowSupport(true); setSupportUnread(0); }} style={{ position: "relative", background: "none", border: "1px solid rgba(201,169,110,0.35)", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", padding: "6px 12px", cursor: "pointer" }}>
             Help
             {supportUnread > 0 && (
               <span style={{ position: "absolute", top: "-6px", right: "-6px", minWidth: "16px", height: "16px", borderRadius: "8px", backgroundColor: "#ff4444", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Arial", fontSize: "9px", fontWeight: "700", color: "white", padding: "0 3px" }}>{supportUnread}</span>
