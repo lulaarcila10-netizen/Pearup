@@ -298,6 +298,11 @@ export default function AdminPage() {
                     </div>
                     <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.5)", margin: "4px 0 0", lineHeight: "1.6" }}>"{d.message.length > 100 ? d.message.slice(0, 100) + "…" : d.message}"</p>
                     <Row label="Date" value={new Date(d.created_at).toLocaleDateString()} />
+                    {d.budget && (() => {
+                      const amount = parseFloat(d.budget.replace(/[^0-9.]/g, ""));
+                      if (!isNaN(amount)) return <Row label="Your 12% cut" value={`$${(amount * 0.12).toFixed(2)}`} />;
+                      return null;
+                    })()}
                   </Card>
                 ))}
               </div>

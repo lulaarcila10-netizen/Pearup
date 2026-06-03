@@ -12,9 +12,11 @@ export default function SignUp() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
+    if (!ageConfirmed) return;
     setLoading(true);
     setError("");
 
@@ -64,10 +66,17 @@ export default function SignUp() {
 
         {error && <p style={{ color: "#ff6b6b", fontFamily: "Arial", fontSize: "13px" }}>{error}</p>}
 
+        <label style={{ display: "flex", alignItems: "flex-start", gap: "12px", cursor: "pointer", textAlign: "left" }}>
+          <input type="checkbox" checked={ageConfirmed} onChange={e => setAgeConfirmed(e.target.checked)} style={{ marginTop: "3px", accentColor: "#c9a96e", flexShrink: 0 }} />
+          <span style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: "1.6" }}>
+            I confirm that I am 13 years of age or older. By creating an account I agree that Pearup charges a <strong style={{ color: "#c9a96e" }}>12% platform fee</strong> on every deal completed through the platform.
+          </span>
+        </label>
+
         <button
           type="submit"
-          disabled={loading}
-          style={{ backgroundColor: "#c9a96e", color: "#0a0a0a", padding: "16px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer", marginTop: "8px" }}
+          disabled={loading || !ageConfirmed}
+          style={{ backgroundColor: ageConfirmed ? "#c9a96e" : "rgba(201,169,110,0.3)", color: "#0a0a0a", padding: "16px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: ageConfirmed ? "pointer" : "not-allowed", marginTop: "8px" }}
         >
           {loading ? "Creating Account..." : "Create Account"}
         </button>

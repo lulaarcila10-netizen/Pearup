@@ -252,12 +252,16 @@ export default function ProfilePage() {
         )}
 
         {/* Locked contact info */}
-        <div style={{ border: "1px solid rgba(255,255,255,0.06)", padding: "20px", marginBottom: "32px", display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={{ border: "1px solid rgba(255,255,255,0.06)", padding: "20px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "12px" }}>
           <span style={{ fontSize: "18px" }}>🔒</span>
           <div>
             <p style={{ fontFamily: "Arial", fontSize: "11px", color: "rgba(255,255,255,0.4)", letterSpacing: "1px", margin: "0 0 4px" }}>Contact info hidden</p>
             <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.25)", margin: "0" }}>Unlocked once a deal is made inside Pearup.</p>
           </div>
+        </div>
+        <div style={{ border: "1px solid rgba(201,169,110,0.12)", padding: "14px 18px", marginBottom: "32px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "1px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", margin: "0" }}>Pearup Platform Fee</p>
+          <p style={{ fontFamily: "Arial", fontSize: "13px", fontWeight: "700", color: "#c9a96e", margin: "0" }}>12%</p>
         </div>
 
         {/* Action button */}
@@ -284,14 +288,33 @@ export default function ProfilePage() {
                 style={{ padding: "14px 18px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "white", fontSize: "14px", fontFamily: "Georgia, serif", outline: "none", resize: "none" }}
               />
               {canSendDeal && (
-                <input
-                  type="text"
-                  placeholder="Your budget offer e.g. $500"
-                  value={dealBudget}
-                  onChange={e => setDealBudget(e.target.value)}
-                  style={{ padding: "14px 18px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "white", fontSize: "14px", fontFamily: "Georgia, serif", outline: "none" }}
-                />
+                <>
+                  <input
+                    type="text"
+                    placeholder="Your budget offer e.g. $500"
+                    value={dealBudget}
+                    onChange={e => setDealBudget(e.target.value)}
+                    style={{ padding: "14px 18px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "white", fontSize: "14px", fontFamily: "Georgia, serif", outline: "none" }}
+                  />
+                  <div style={{ padding: "12px 16px", backgroundColor: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.2)" }}>
+                    <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "1px", color: "#c9a96e", textTransform: "uppercase", margin: "0 0 4px" }}>Platform Fee</p>
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.6)", margin: "0", lineHeight: "1.6" }}>Pearup charges a 12% platform fee on every deal. This is deducted from the agreed budget at the time of payment.</p>
+                  </div>
+                </>
               )}
+              {canPitch && (
+                <div style={{ padding: "12px 16px", backgroundColor: "rgba(201,169,110,0.06)", border: "1px solid rgba(201,169,110,0.2)" }}>
+                  <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "1px", color: "#c9a96e", textTransform: "uppercase", margin: "0 0 4px" }}>Platform Fee</p>
+                  <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.6)", margin: "0", lineHeight: "1.6" }}>Pearup charges a 12% platform fee on every deal, deducted from the agreed budget at the time of payment.</p>
+                </div>
+              )}
+              <div style={{ padding: "12px 16px", backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.4)", margin: "0", lineHeight: "1.6" }}>
+                  {canSendDeal
+                    ? "By sending this proposal, you agree that all deals must be completed through Pearup. A 12% platform fee applies."
+                    : "FTC notice: You must disclose this as a paid partnership in your content (#ad, #sponsored, or 'Paid partnership'). All deals must stay on Pearup."}
+                </p>
+              </div>
               <div style={{ display: "flex", gap: "12px" }}>
                 <button onClick={() => setShowDealForm(false)} style={{ flex: 1, background: "none", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)", padding: "14px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", cursor: "pointer" }}>Cancel</button>
                 <button onClick={handleSendDeal} disabled={!dealMessage || sendingDeal} style={{ flex: 2, backgroundColor: dealMessage ? "#c9a96e" : "rgba(201,169,110,0.3)", color: "#0a0a0a", padding: "14px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: dealMessage ? "pointer" : "not-allowed" }}>
