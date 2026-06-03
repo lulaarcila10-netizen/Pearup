@@ -16,7 +16,7 @@ export default function Home() {
         <div style={{ width: "40px", height: "2px", backgroundColor: "#c9a96e", margin: "0 auto 24px" }} />
 
         <p style={{ fontSize: "19px", color: "rgba(255,255,255,0.65)", maxWidth: "420px", lineHeight: "1.8", marginBottom: "40px", fontFamily: "Georgia, serif" }}>
-          The easiest way for brands to find their perfect creator — and get paid doing what you love.
+          The easiest way to collab, get paid, and grow.
         </p>
 
         <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", justifyContent: "center", marginBottom: "80px" }}>

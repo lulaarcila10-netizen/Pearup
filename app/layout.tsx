@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Pearup",
-  description: "The easiest way for brands to find their perfect creator.",
+  description: "The easiest way to collab, get paid, and grow.",
 };
 
 export default function RootLayout({

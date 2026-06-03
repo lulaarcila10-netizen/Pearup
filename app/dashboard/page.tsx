@@ -550,7 +550,7 @@ export default function Dashboard() {
       <div style={{ padding: "24px" }}>
         <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "4px", color: "#c9a96e", textTransform: "uppercase", marginBottom: "8px" }}>Discover</p>
         <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "24px" }}>
-          {isBrand ? "Find your perfect creator." : "Find your perfect brand."}
+          {"The easiest way to collab, get paid, and grow."}
         </p>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "32px" }}>
           <button onClick={() => filterByNiche(null)} style={filterStyle(!activeFilter)}>All</button>
