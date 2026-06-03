@@ -63,9 +63,11 @@ export default function ProfilePage() {
   const [sendingDeal, setSendingDeal] = useState(false);
   const [dealSent, setDealSent] = useState(false);
   // Brand proposal fields
+  const [dealOverview, setDealOverview] = useState("");
+  const [platform, setPlatform] = useState("");
+  const [format, setFormat] = useState("");
   const [deliverables, setDeliverables] = useState("");
   const [deadline, setDeadline] = useState("");
-  const [platformFormat, setPlatformFormat] = useState("");
   const [creativeDirection, setCreativeDirection] = useState("");
   const [usageRights, setUsageRights] = useState("");
   const [exclusivity, setExclusivity] = useState("");
@@ -154,9 +156,12 @@ export default function ProfilePage() {
     let message = dealMessage;
     if (viewerType === "brand") {
       const parts = [
+        `PROPOSAL: ${dealOverview}`,
+        `PLATFORM: ${platform}`,
+        `FORMAT: ${format}`,
+        `BUDGET: ${dealBudget}`,
         `DELIVERABLES: ${deliverables}`,
         `DEADLINE: ${deadline}`,
-        `PLATFORM & FORMAT: ${platformFormat}`,
         `CREATIVE DIRECTION: ${creativeDirection}`,
       ];
       if (usageRights) parts.push(`USAGE RIGHTS: ${usageRights}`);
@@ -314,11 +319,13 @@ export default function ProfilePage() {
                 <>
                   {/* Required fields */}
                   {[
-                    { label: "Deliverables", placeholder: "e.g. 1 TikTok video (30–60 sec) + 3 Instagram Stories", value: deliverables, onChange: setDeliverables, rows: 2 },
-                    { label: "Posting Deadline", placeholder: "e.g. July 15, 2026", value: deadline, onChange: setDeadline, rows: 1 },
-                    { label: "Platform & Format", placeholder: "e.g. TikTok vertical video", value: platformFormat, onChange: setPlatformFormat, rows: 1 },
+                    { label: "The Deal", placeholder: "Give the creator a quick overview — what this collab is about and why you're reaching out.", value: dealOverview, onChange: setDealOverview, rows: 3 },
+                    { label: "Platform", placeholder: "e.g. Instagram, TikTok, YouTube", value: platform, onChange: setPlatform, rows: 1 },
+                    { label: "Format", placeholder: "e.g. Reel, Story, Feed Post, Short Video", value: format, onChange: setFormat, rows: 1 },
                     { label: "Budget", placeholder: "e.g. $500", value: dealBudget, onChange: (v: string) => setDealBudget(v), rows: 1 },
                     { label: "Creative Direction", placeholder: "e.g. Creator's own style — just feature the product naturally. No script needed.", value: creativeDirection, onChange: setCreativeDirection, rows: 2 },
+                    { label: "Deliverables", placeholder: "e.g. 1 TikTok video (30–60 sec) + 3 Instagram Stories", value: deliverables, onChange: setDeliverables, rows: 2 },
+                    { label: "Posting Deadline", placeholder: "e.g. July 15, 2026", value: deadline, onChange: setDeadline, rows: 1 },
                   ].map(({ label, placeholder, value, onChange, rows }) => (
                     <div key={label}>
                       <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", margin: "0 0 8px" }}>
@@ -368,8 +375,8 @@ export default function ProfilePage() {
                 <button onClick={() => setShowDealForm(false)} style={{ flex: 1, background: "none", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)", padding: "14px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", cursor: "pointer" }}>Cancel</button>
                 <button
                   onClick={handleSendDeal}
-                  disabled={canSendDeal ? (!deliverables || !deadline || !platformFormat || !creativeDirection || !dealBudget || sendingDeal) : (!dealMessage || sendingDeal)}
-                  style={{ flex: 2, backgroundColor: (canSendDeal ? (deliverables && deadline && platformFormat && creativeDirection && dealBudget) : dealMessage) ? "#c9a96e" : "rgba(201,169,110,0.3)", color: "#0a0a0a", padding: "14px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer" }}
+                  disabled={canSendDeal ? (!dealOverview || !platform || !format || !dealBudget || !creativeDirection || !deliverables || !deadline || sendingDeal) : (!dealMessage || sendingDeal)}
+                  style={{ flex: 2, backgroundColor: (canSendDeal ? (dealOverview && platform && format && dealBudget && creativeDirection && deliverables && deadline) : dealMessage) ? "#c9a96e" : "rgba(201,169,110,0.3)", color: "#0a0a0a", padding: "14px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer" }}
                 >
                   {sendingDeal ? "Sending..." : "Send Proposal"}
                 </button>
