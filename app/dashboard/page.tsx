@@ -141,6 +141,7 @@ export default function Dashboard() {
   const dealsLoadedRef = useRef(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const chatBottomRef = useRef<HTMLDivElement | null>(null);
+  const [creatorStats, setCreatorStats] = useState<{ bio: string | null; niche: string[]; follower_count: number | null; rate_per_post: number | null } | null>(null);
   const [showSupport, setShowSupport] = useState(false);
   const [supportMessages, setSupportMessages] = useState<SupportMsg[]>([]);
   const [supportInput, setSupportInput] = useState("");
@@ -330,6 +331,13 @@ export default function Dashboard() {
   useEffect(() => {
     supportBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [supportMessages]);
+
+  useEffect(() => {
+    if (activeTab !== "profile" || !userId || profile?.user_type !== "creator" || creatorStats) return;
+    supabase.from("creator_profiles").select("bio, niche, follower_count, rate_per_post").eq("id", userId).single().then(({ data }) => {
+      setCreatorStats(data || { bio: null, niche: [], follower_count: null, rate_per_post: null });
+    });
+  }, [activeTab, userId, profile?.user_type, creatorStats]);
 
   async function handleDealAction(dealId: string, action: "accepted" | "declined") {
     await supabase.from("deals").update({ status: action }).eq("id", dealId);
@@ -591,7 +599,9 @@ export default function Dashboard() {
         ) : (
           filteredBrands.length === 0 ? (
             <div style={{ border: "1px solid rgba(201,169,110,0.15)", padding: "48px 24px", textAlign: "center" }}>
-              <p style={{ color: "rgba(255,255,255,0.6)", fontFamily: "Georgia, serif", fontSize: "15px", lineHeight: "1.8" }}>No brands found yet. Check back soon.</p>
+              <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", color: "#c9a96e", textTransform: "uppercase", marginBottom: "12px" }}>Brands are on their way</p>
+              <p style={{ color: "rgba(255,255,255,0.6)", fontFamily: "Georgia, serif", fontSize: "14px", lineHeight: "1.8", marginBottom: "24px" }}>We'll notify you as soon as a brand matching your niche joins Pearup.</p>
+              <button onClick={() => router.push("/edit-profile/creator")} style={{ background: "none", border: "1px solid rgba(201,169,110,0.4)", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", padding: "10px 20px", cursor: "pointer" }}>Update My Niche Preferences</button>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -637,9 +647,12 @@ export default function Dashboard() {
           <p style={{ color: "#c9a96e", fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", textAlign: "center", padding: "40px 0" }}>Loading...</p>
         ) : deals.length === 0 ? (
           <div style={{ border: "1px solid rgba(201,169,110,0.15)", padding: "48px 24px", textAlign: "center" }}>
-            <p style={{ color: "rgba(255,255,255,0.6)", fontFamily: "Georgia, serif", fontSize: "15px", lineHeight: "1.8" }}>
-              {isBrand ? "Send a deal proposal to a creator to get started." : "Pitch yourself to a brand to get started."}
+            <p style={{ color: "rgba(255,255,255,0.6)", fontFamily: "Georgia, serif", fontSize: "15px", lineHeight: "1.8", marginBottom: "24px" }}>
+              {isBrand ? "Send a deal proposal to a creator to get started." : "No deals yet — find a brand you love and pitch yourself."}
             </p>
+            {!isBrand && (
+              <button onClick={() => setActiveTab("discover")} style={{ backgroundColor: "#c9a96e", color: "#0a0a0a", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", padding: "12px 24px", border: "none", cursor: "pointer" }}>Browse Brands</button>
+            )}
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -974,7 +987,31 @@ export default function Dashboard() {
         )}
 
         <p style={{ fontFamily: "Arial", fontSize: "18px", fontWeight: "600", color: "white", marginBottom: "4px", marginTop: "8px" }}>{isBrand ? (brandName || "—") : (profile?.full_name || "—")}</p>
-        <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", marginBottom: "40px" }}>{isBrand ? "Brand" : "Creator"}</p>
+        <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", marginBottom: "24px" }}>{isBrand ? "Brand" : "Creator"}</p>
+
+        {!isBrand && creatorStats !== null && (() => {
+          let score = 0;
+          if (profile?.avatar_url) score += 25;
+          if (creatorStats.bio) score += 25;
+          if (creatorStats.niche?.length > 0) score += 25;
+          if (creatorStats.follower_count) score += 25;
+          return (
+            <div style={{ width: "100%", marginBottom: "32px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "3px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", margin: "0" }}>Profile Completion</p>
+                <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: score === 100 ? "#4ade80" : "#c9a96e", textTransform: "uppercase", margin: "0" }}>{score}%</p>
+              </div>
+              <div style={{ height: "3px", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: "2px" }}>
+                <div style={{ height: "100%", width: `${score}%`, backgroundColor: score === 100 ? "#4ade80" : "#c9a96e", borderRadius: "2px", transition: "width 0.5s ease" }} />
+              </div>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: score === 100 ? "#4ade80" : "rgba(255,255,255,0.35)", margin: "8px 0 0", textAlign: "center" }}>
+                {score === 100 ? "Your profile is complete — brands can find you easily." :
+                 score >= 50 ? "Almost there. A complete profile gets more deal proposals." :
+                 "Complete your profile to attract brands."}
+              </p>
+            </div>
+          );
+        })()}
 
         <div style={{ width: "100%", marginBottom: "40px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
@@ -988,22 +1025,25 @@ export default function Dashboard() {
               </label>
             )}
           </div>
-          {portfolio.length === 0 ? (
-            <div style={{ border: "1px dashed rgba(201,169,110,0.2)", padding: "32px", textAlign: "center" }}>
-              <p style={{ color: "rgba(255,255,255,0.72)", fontFamily: "Georgia, serif", fontSize: "13px", margin: "0" }}>
-                {isBrand ? "Upload product photos to show creators what you sell." : "Upload photos that show your content vibe."}
-              </p>
-            </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "4px" }}>
-              {portfolio.map(img => (
-                <div key={img.id} style={{ position: "relative", aspectRatio: "1", overflow: "hidden" }}>
-                  <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  <button onClick={() => handleDeletePortfolioImage(img.id)} style={{ position: "absolute", top: "4px", right: "4px", background: "rgba(0,0,0,0.7)", border: "none", color: "white", width: "20px", height: "20px", cursor: "pointer", fontSize: "12px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%" }}>×</button>
-                </div>
-              ))}
-            </div>
-          )}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "4px" }}>
+            {Array.from({ length: 9 }).map((_, i) => {
+              const img = portfolio[i];
+              if (img) {
+                return (
+                  <div key={img.id} style={{ position: "relative", aspectRatio: "1", overflow: "hidden" }}>
+                    <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <button onClick={() => handleDeletePortfolioImage(img.id)} style={{ position: "absolute", top: "4px", right: "4px", background: "rgba(0,0,0,0.7)", border: "none", color: "white", width: "20px", height: "20px", cursor: "pointer", fontSize: "12px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%" }}>×</button>
+                  </div>
+                );
+              }
+              return (
+                <label key={`empty-${i}`} style={{ aspectRatio: "1", border: "1px dashed rgba(201,169,110,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: portfolio.length < 9 ? "pointer" : "default" }}>
+                  <span style={{ color: "rgba(201,169,110,0.3)", fontSize: "20px", lineHeight: "1" }}>+</span>
+                  {portfolio.length < 9 && <input type="file" accept="image/*" multiple onChange={handlePortfolioUpload} style={{ display: "none" }} disabled={uploadingPortfolio} />}
+                </label>
+              );
+            })}
+          </div>
         </div>
 
         <button onClick={() => router.push(isBrand ? "/edit-profile/brand" : "/edit-profile/creator")} style={{ backgroundColor: "#c9a96e", color: "#0a0a0a", fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", padding: "14px 32px", border: "none", cursor: "pointer", marginBottom: "12px", width: "100%", maxWidth: "280px" }}>
