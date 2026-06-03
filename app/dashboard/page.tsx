@@ -60,6 +60,13 @@ type ChatMessage = {
   offer_status: "pending" | "accepted" | null;
 };
 
+type SupportMsg = {
+  id: string;
+  sender_type: "user" | "admin";
+  content: string;
+  created_at: string;
+};
+
 type Tab = "discover" | "deals" | "messages" | "profile";
 
 const NICHES = ["Fashion", "Beauty", "Jewelry", "Skincare", "Fitness", "Travel", "Food", "Tech", "Gadgets", "Lifestyle"];
@@ -134,6 +141,11 @@ export default function Dashboard() {
   const dealsLoadedRef = useRef(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const chatBottomRef = useRef<HTMLDivElement | null>(null);
+  const [showSupport, setShowSupport] = useState(false);
+  const [supportMessages, setSupportMessages] = useState<SupportMsg[]>([]);
+  const [supportInput, setSupportInput] = useState("");
+  const [sendingSupport, setSendingSupport] = useState(false);
+  const supportBottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     async function loadProfile() {
@@ -296,6 +308,21 @@ export default function Dashboard() {
     chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
+  // Load support messages and subscribe to new ones
+  useEffect(() => {
+    if (!showSupport || !userId) return;
+    supabase.from("support_messages").select("id, sender_type, content, created_at").eq("user_id", userId).order("created_at", { ascending: true }).then(({ data }) => setSupportMessages(data || []));
+    const ch = supabase.channel(`support-${userId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "support_messages", filter: `user_id=eq.${userId}` }, payload => {
+        setSupportMessages(prev => [...prev, payload.new as SupportMsg]);
+      }).subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [showSupport, userId]);
+
+  useEffect(() => {
+    supportBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [supportMessages]);
+
   async function handleDealAction(dealId: string, action: "accepted" | "declined") {
     await supabase.from("deals").update({ status: action }).eq("id", dealId);
     if (action === "accepted") {
@@ -400,6 +427,20 @@ export default function Dashboard() {
   async function handleLogout() {
     await supabase.auth.signOut();
     router.push("/");
+  }
+
+  async function handleSendSupport() {
+    if (!supportInput.trim() || !userId || sendingSupport) return;
+    setSendingSupport(true);
+    const content = supportInput.trim();
+    setSupportInput("");
+    await supabase.from("support_messages").insert({ user_id: userId, sender_type: "user", content });
+    fetch("/api/support-notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userName: profile?.full_name || "A user", userType: profile?.user_type || "user", message: content }),
+    }).catch(() => {});
+    setSendingSupport(false);
   }
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -972,8 +1013,53 @@ export default function Dashboard() {
     <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", color: "white", paddingBottom: "80px" }}>
       <div style={{ borderBottom: "1px solid rgba(255,255,255,0.08)", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <p style={{ fontFamily: "Arial", fontSize: "16px", fontWeight: "700", letterSpacing: "4px", color: "#c9a96e", margin: "0" }}>PEARUP</p>
-        <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", margin: "0" }}>{isBrand ? "Brand" : "Creator"}</p>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", margin: "0" }}>{isBrand ? "Brand" : "Creator"}</p>
+          <button onClick={() => setShowSupport(true)} style={{ background: "none", border: "1px solid rgba(201,169,110,0.35)", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", padding: "6px 12px", cursor: "pointer" }}>Help</button>
+        </div>
       </div>
+
+      {/* Support chat modal */}
+      {showSupport && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.7)", zIndex: 100, display: "flex", alignItems: "flex-end" }}>
+          <div style={{ width: "100%", backgroundColor: "#0f0f0f", border: "1px solid rgba(255,255,255,0.1)", borderBottom: "none", borderRadius: "16px 16px 0 0", maxHeight: "75vh", display: "flex", flexDirection: "column" }}>
+            <div style={{ padding: "18px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <p style={{ fontFamily: "Arial", fontSize: "13px", fontWeight: "700", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", margin: "0 0 2px" }}>Support</p>
+                <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.45)", margin: "0" }}>We usually reply within a few hours.</p>
+              </div>
+              <button onClick={() => setShowSupport(false)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: "22px", cursor: "pointer", lineHeight: "1" }}>×</button>
+            </div>
+            <div style={{ flex: 1, overflowY: "auto", padding: "20px", display: "flex", flexDirection: "column", gap: "10px" }}>
+              {supportMessages.length === 0 && (
+                <p style={{ color: "rgba(255,255,255,0.35)", fontFamily: "Georgia, serif", fontSize: "13px", textAlign: "center", padding: "20px 0" }}>Have a question or issue? Send us a message and we'll get back to you.</p>
+              )}
+              {supportMessages.map(m => (
+                <div key={m.id} style={{ display: "flex", justifyContent: m.sender_type === "user" ? "flex-end" : "flex-start" }}>
+                  <div style={{ maxWidth: "78%", padding: "10px 14px", backgroundColor: m.sender_type === "user" ? "#c9a96e" : "rgba(255,255,255,0.07)", borderRadius: m.sender_type === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px" }}>
+                    {m.sender_type === "admin" && <p style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", margin: "0 0 4px" }}>Pearup Team</p>}
+                    <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: m.sender_type === "user" ? "#0a0a0a" : "rgba(255,255,255,0.85)", margin: "0", lineHeight: "1.5" }}>{m.content}</p>
+                  </div>
+                </div>
+              ))}
+              <div ref={supportBottomRef} />
+            </div>
+            <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", gap: "10px" }}>
+              <textarea
+                value={supportInput}
+                onChange={e => setSupportInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendSupport(); } }}
+                placeholder="Type your message..."
+                rows={1}
+                style={{ flex: 1, padding: "12px 14px", backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "white", fontSize: "14px", fontFamily: "Georgia, serif", outline: "none", resize: "none", borderRadius: "8px" }}
+              />
+              <button onClick={handleSendSupport} disabled={!supportInput.trim() || sendingSupport} style={{ backgroundColor: supportInput.trim() ? "#c9a96e" : "rgba(201,169,110,0.3)", color: "#0a0a0a", padding: "12px 18px", fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: supportInput.trim() ? "pointer" : "not-allowed", flexShrink: 0 }}>
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {activeTab === "discover" && DiscoverTab()}
       {activeTab === "deals" && DealsTab()}

@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
-type Tab = "users" | "creators" | "brands" | "deals" | "messages";
+type Tab = "users" | "creators" | "brands" | "deals" | "messages" | "support";
 
 type User = { id: string; full_name: string | null; user_type: string };
 type Creator = { id: string; full_name: string | null; bio: string | null; niche: string[]; platforms: string[]; follower_count: number | null; rate_per_post: number | null };
 type Brand = { id: string; brand_name: string; description: string | null; industry: string[]; budget_min: number | null };
 type Deal = { id: string; brand_name: string; creator_name: string; message: string; budget: string | null; status: string; payment_status: string | null; created_at: string };
 type Message = { id: string; deal_id: string; sender_id: string; content: string; type: string; created_at: string };
+type SupportThread = { user_id: string; user_name: string; user_type: string; last_message: string; last_message_at: string };
+type SupportMsg = { id: string; user_id: string; sender_type: string; content: string; created_at: string };
 
 const statusColor = (s: string) => s === "accepted" ? "#4ade80" : s === "declined" ? "rgba(255,100,100,0.7)" : "#c9a96e";
 const typeColor = (t: string) => t === "creator" ? "#c9a96e" : t === "brand" ? "rgba(255,255,255,0.7)" : "#a78bfa";
@@ -59,6 +61,11 @@ export default function AdminPage() {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [expandedCreators, setExpandedCreators] = useState<Set<string>>(new Set());
+  const [supportThreads, setSupportThreads] = useState<SupportThread[]>([]);
+  const [activeSupportUser, setActiveSupportUser] = useState<SupportThread | null>(null);
+  const [supportMsgs, setSupportMsgs] = useState<SupportMsg[]>([]);
+  const [supportReply, setSupportReply] = useState("");
+  const [sendingReply, setSendingReply] = useState(false);
 
   useEffect(() => {
     async function checkAdmin() {
@@ -115,6 +122,24 @@ export default function AdminPage() {
     } else if (tab === "messages") {
       const { data } = await supabase.from("messages").select("id, deal_id, sender_id, content, type, created_at").order("created_at", { ascending: false }).limit(300);
       setMessages(data || []);
+    } else if (tab === "support") {
+      const { data: allMsgs } = await supabase.from("support_messages").select("user_id, content, sender_type, created_at").order("created_at", { ascending: false });
+      if (allMsgs && allMsgs.length > 0) {
+        const seen = new Set<string>();
+        const latest: { user_id: string; content: string; created_at: string }[] = [];
+        for (const m of allMsgs) {
+          if (!seen.has(m.user_id)) { seen.add(m.user_id); latest.push(m); }
+        }
+        const userIds = latest.map(m => m.user_id);
+        const { data: profileData } = await supabase.from("profiles").select("id, full_name, user_type").in("id", userIds);
+        const profileMap: Record<string, { name: string; type: string }> = {};
+        profileData?.forEach((p: any) => { profileMap[p.id] = { name: p.full_name || "Unknown", type: p.user_type }; });
+        setSupportThreads(latest.map(m => ({ user_id: m.user_id, user_name: profileMap[m.user_id]?.name || "Unknown", user_type: profileMap[m.user_id]?.type || "user", last_message: m.content, last_message_at: m.created_at })));
+      } else {
+        setSupportThreads([]);
+      }
+      setActiveSupportUser(null);
+      setSupportMsgs([]);
     }
 
     setTabLoading(false);
@@ -128,8 +153,8 @@ export default function AdminPage() {
     );
   }
 
-  const tabs: Tab[] = ["users", "creators", "brands", "deals", "messages"];
-  const counts: Record<Tab, number> = { users: users.length, creators: creators.length, brands: brands.length, deals: deals.length, messages: messages.length };
+  const tabs: Tab[] = ["users", "creators", "brands", "deals", "messages", "support"];
+  const counts: Record<Tab, number> = { users: users.length, creators: creators.length, brands: brands.length, deals: deals.length, messages: messages.length, support: supportThreads.length };
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", color: "white", paddingBottom: "40px" }}>
@@ -262,6 +287,72 @@ export default function AdminPage() {
                     <Row label="Date" value={new Date(d.created_at).toLocaleDateString()} />
                   </Card>
                 ))}
+              </div>
+            )}
+
+            {/* SUPPORT */}
+            {activeTab === "support" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
+                <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "16px" }}>
+                  {activeSupportUser ? `← ${activeSupportUser.user_name}` : `${supportThreads.length} support threads`}
+                </p>
+
+                {/* Thread list */}
+                {!activeSupportUser && (
+                  <>
+                    {supportThreads.length === 0 && <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No support messages yet.</p>}
+                    {supportThreads.map(t => (
+                      <button key={t.user_id} onClick={async () => {
+                        setActiveSupportUser(t);
+                        const { data } = await supabase.from("support_messages").select("id, user_id, sender_type, content, created_at").eq("user_id", t.user_id).order("created_at", { ascending: true });
+                        setSupportMsgs(data || []);
+                      }} style={{ display: "flex", flexDirection: "column", gap: "4px", padding: "16px 0", background: "none", border: "none", borderBottom: "1px solid rgba(255,255,255,0.06)", cursor: "pointer", textAlign: "left", width: "100%" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                          <p style={{ fontFamily: "Arial", fontSize: "14px", fontWeight: "600", color: "white", margin: "0" }}>{t.user_name}</p>
+                          <Badge text={t.user_type} color={typeColor(t.user_type)} />
+                        </div>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.45)", margin: "0" }}>{t.last_message.length > 60 ? t.last_message.slice(0, 60) + "…" : t.last_message}</p>
+                      </button>
+                    ))}
+                  </>
+                )}
+
+                {/* Thread view + reply */}
+                {activeSupportUser && (
+                  <>
+                    <button onClick={() => setActiveSupportUser(null)} style={{ background: "none", border: "none", color: "#c9a96e", fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", cursor: "pointer", textAlign: "left", padding: "0 0 16px", marginBottom: "8px" }}>← Back</button>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
+                      {supportMsgs.map(m => (
+                        <div key={m.id} style={{ display: "flex", justifyContent: m.sender_type === "admin" ? "flex-end" : "flex-start" }}>
+                          <div style={{ maxWidth: "78%", padding: "10px 14px", backgroundColor: m.sender_type === "admin" ? "#c9a96e" : "rgba(255,255,255,0.07)", borderRadius: m.sender_type === "admin" ? "16px 16px 4px 16px" : "16px 16px 16px 4px" }}>
+                            <p style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", color: m.sender_type === "admin" ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.4)", textTransform: "uppercase", margin: "0 0 4px" }}>{m.sender_type === "admin" ? "You" : activeSupportUser.user_name}</p>
+                            <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: m.sender_type === "admin" ? "#0a0a0a" : "rgba(255,255,255,0.85)", margin: "0", lineHeight: "1.5" }}>{m.content}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", gap: "10px" }}>
+                      <textarea
+                        value={supportReply}
+                        onChange={e => setSupportReply(e.target.value)}
+                        placeholder={`Reply to ${activeSupportUser.user_name}…`}
+                        rows={2}
+                        style={{ flex: 1, padding: "12px 14px", backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "white", fontSize: "14px", fontFamily: "Georgia, serif", outline: "none", resize: "none", borderRadius: "8px" }}
+                      />
+                      <button onClick={async () => {
+                        if (!supportReply.trim() || sendingReply) return;
+                        setSendingReply(true);
+                        const content = supportReply.trim();
+                        setSupportReply("");
+                        await supabase.from("support_messages").insert({ user_id: activeSupportUser.user_id, sender_type: "admin", content });
+                        setSupportMsgs(prev => [...prev, { id: Date.now().toString(), user_id: activeSupportUser.user_id, sender_type: "admin", content, created_at: new Date().toISOString() }]);
+                        setSendingReply(false);
+                      }} disabled={!supportReply.trim() || sendingReply} style={{ backgroundColor: supportReply.trim() ? "#c9a96e" : "rgba(201,169,110,0.3)", color: "#0a0a0a", padding: "12px 18px", fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: supportReply.trim() ? "pointer" : "not-allowed", alignSelf: "flex-end" }}>
+                        Reply
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
