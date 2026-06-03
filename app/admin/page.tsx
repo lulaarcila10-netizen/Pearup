@@ -15,6 +15,22 @@ type Message = { id: string; deal_id: string; sender_id: string; content: string
 const statusColor = (s: string) => s === "accepted" ? "#4ade80" : s === "declined" ? "rgba(255,100,100,0.7)" : "#c9a96e";
 const typeColor = (t: string) => t === "creator" ? "#c9a96e" : t === "brand" ? "rgba(255,255,255,0.7)" : "#a78bfa";
 
+function displayFollowers(n: number): string {
+  if (n >= 500000) return "500K+";
+  if (n >= 100000) return "100K – 500K";
+  if (n >= 50000) return "50K – 100K";
+  if (n >= 10000) return "10K – 50K";
+  return "1K – 10K";
+}
+
+function displayRate(n: number): string {
+  if (n >= 15000) return "$15,000+";
+  if (n >= 5000) return "$5,000 – $15,000";
+  if (n >= 1000) return "$1,000 – $5,000";
+  if (n >= 500) return "$500 – $1,000";
+  return "$100 – $500";
+}
+
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: "flex", gap: "8px", alignItems: "baseline" }}>
@@ -42,6 +58,7 @@ export default function AdminPage() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [expandedCreators, setExpandedCreators] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     async function checkAdmin() {
@@ -167,16 +184,44 @@ export default function AdminPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "16px" }}>{creators.length} creators</p>
                 {creators.length === 0 && <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No creators yet.</p>}
-                {creators.map(c => (
-                  <Card key={c.id}>
-                    <p style={{ fontFamily: "Arial", fontSize: "14px", fontWeight: "600", color: "white", margin: "0" }}>{c.full_name || "—"}</p>
-                    {c.bio && <Row label="Bio" value={c.bio} />}
-                    {c.platforms.length > 0 && <Row label="Platforms" value={c.platforms.join(", ")} />}
-                    {c.niche.length > 0 && <Row label="Niche" value={c.niche.join(", ")} />}
-                    {c.follower_count && <Row label="Followers" value={`${c.follower_count.toLocaleString()}`} />}
-                    {c.rate_per_post && <Row label="Rate" value={`$${c.rate_per_post.toLocaleString()}`} />}
-                  </Card>
-                ))}
+                {creators.map(c => {
+                  const expanded = expandedCreators.has(c.id);
+                  const toggle = () => setExpandedCreators(prev => {
+                    const next = new Set(prev);
+                    expanded ? next.delete(c.id) : next.add(c.id);
+                    return next;
+                  });
+                  return (
+                    <Card key={c.id}>
+                      {/* Always visible */}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <p style={{ fontFamily: "Arial", fontSize: "14px", fontWeight: "600", color: "white", margin: "0" }}>{c.full_name || "—"}</p>
+                        <div style={{ display: "flex", gap: "8px" }}>
+                          <button onClick={toggle} style={{ background: "none", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.6)", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", cursor: "pointer" }}>
+                            {expanded ? "Show less" : "Show more"}
+                          </button>
+                          <button onClick={() => router.push(`/profile/${c.id}`)} style={{ background: "none", border: "1px solid rgba(201,169,110,0.4)", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", cursor: "pointer" }}>
+                            View Profile
+                          </button>
+                        </div>
+                      </div>
+                      {c.follower_count && <Row label="Followers" value={displayFollowers(c.follower_count)} />}
+                      {c.rate_per_post && <Row label="Rate" value={displayRate(c.rate_per_post)} />}
+                      {c.niche.length > 0 && (
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
+                          {c.niche.map(n => <span key={n} style={{ padding: "3px 8px", border: "1px solid rgba(201,169,110,0.25)", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase" }}>{n}</span>)}
+                        </div>
+                      )}
+                      {/* Expanded details */}
+                      {expanded && (
+                        <>
+                          {c.bio && <Row label="Bio" value={c.bio} />}
+                          {c.platforms.length > 0 && <Row label="Platforms" value={c.platforms.join(", ")} />}
+                        </>
+                      )}
+                    </Card>
+                  );
+                })}
               </div>
             )}
 
