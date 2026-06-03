@@ -62,6 +62,15 @@ export default function ProfilePage() {
   const [dealBudget, setDealBudget] = useState("");
   const [sendingDeal, setSendingDeal] = useState(false);
   const [dealSent, setDealSent] = useState(false);
+  // Brand proposal fields
+  const [deliverables, setDeliverables] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [platformFormat, setPlatformFormat] = useState("");
+  const [creativeDirection, setCreativeDirection] = useState("");
+  const [usageRights, setUsageRights] = useState("");
+  const [exclusivity, setExclusivity] = useState("");
+  const [revisionPolicy, setRevisionPolicy] = useState("");
+  const [productShipment, setProductShipment] = useState("");
   const [viewerId, setViewerId] = useState<string | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioImage[]>([]);
   const [showFeeInfo, setShowFeeInfo] = useState(false);
@@ -139,13 +148,28 @@ export default function ProfilePage() {
   }, [profileId, router]);
 
   async function handleSendDeal() {
-    if (!dealMessage || !viewerId) return;
+    if (!viewerId) return;
     setSendingDeal(true);
+
+    let message = dealMessage;
+    if (viewerType === "brand") {
+      const parts = [
+        `DELIVERABLES: ${deliverables}`,
+        `DEADLINE: ${deadline}`,
+        `PLATFORM & FORMAT: ${platformFormat}`,
+        `CREATIVE DIRECTION: ${creativeDirection}`,
+      ];
+      if (usageRights) parts.push(`USAGE RIGHTS: ${usageRights}`);
+      if (exclusivity) parts.push(`EXCLUSIVITY: ${exclusivity}`);
+      if (revisionPolicy) parts.push(`REVISION POLICY: ${revisionPolicy}`);
+      if (productShipment) parts.push(`PRODUCT SHIPMENT: ${productShipment}`);
+      message = parts.join("\n");
+    }
 
     await supabase.from("deals").insert({
       brand_id: viewerType === "brand" ? viewerId : profileId,
       creator_id: viewerType === "creator" ? viewerId : profileId,
-      message: dealMessage,
+      message,
       budget: dealBudget || null,
       status: "pending",
       initiated_by: viewerId,
@@ -281,37 +305,73 @@ export default function ProfilePage() {
               </div>
             )
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", color: "#c9a96e", textTransform: "uppercase", margin: "0" }}>
-                {canSendDeal ? "Your Proposal" : "Your Pitch"}
+                {canSendDeal ? "Deal Proposal" : "Your Pitch"}
               </p>
-              <textarea
-                placeholder={canSendDeal ? "Describe the collaboration — what you need, timeline, deliverables..." : "Tell them why you're the perfect fit for their brand..."}
-                value={dealMessage}
-                onChange={e => setDealMessage(e.target.value)}
-                rows={4}
-                style={{ padding: "14px 18px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "white", fontSize: "14px", fontFamily: "Georgia, serif", outline: "none", resize: "none" }}
-              />
-              {canSendDeal && (
-                <input
-                  type="text"
-                  placeholder="Your budget offer e.g. $500"
-                  value={dealBudget}
-                  onChange={e => setDealBudget(e.target.value)}
-                  style={{ padding: "14px 18px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "white", fontSize: "14px", fontFamily: "Georgia, serif", outline: "none" }}
+
+              {canSendDeal ? (
+                <>
+                  {/* Required fields */}
+                  {[
+                    { label: "Deliverables", required: true, placeholder: "e.g. 1 TikTok video (30–60 sec) + 3 Instagram Stories", value: deliverables, onChange: setDeliverables, rows: 2 },
+                    { label: "Posting Deadline", required: true, placeholder: "e.g. July 15, 2026", value: deadline, onChange: setDeadline, rows: 1 },
+                    { label: "Platform & Format", required: true, placeholder: "e.g. TikTok vertical video", value: platformFormat, onChange: setPlatformFormat, rows: 1 },
+                    { label: "Budget", required: true, placeholder: "e.g. $500", value: dealBudget, onChange: (v: string) => setDealBudget(v), rows: 1, isBudget: true },
+                    { label: "Creative Direction", required: true, placeholder: "e.g. Creator's own style — just feature the product naturally and show results. No script required.", value: creativeDirection, onChange: setCreativeDirection, rows: 2 },
+                  ].map(({ label, required, placeholder, value, onChange, rows, isBudget }) => (
+                    <div key={label}>
+                      <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: required ? "#c9a96e" : "rgba(255,255,255,0.35)", textTransform: "uppercase", margin: "0 0 8px" }}>
+                        {label} {required && <span style={{ color: "#c9a96e" }}>*</span>}
+                      </p>
+                      {rows > 1 ? (
+                        <textarea value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} rows={rows} style={{ width: "100%", padding: "12px 14px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "white", fontSize: "13px", fontFamily: "Georgia, serif", outline: "none", resize: "none" }} />
+                      ) : (
+                        <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={{ width: "100%", padding: "12px 14px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "white", fontSize: "13px", fontFamily: "Georgia, serif", outline: "none" }} />
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Optional fields */}
+                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "16px" }}>
+                    <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.25)", textTransform: "uppercase", margin: "0 0 16px" }}>Optional — but recommended</p>
+                    {[
+                      { label: "Usage Rights", placeholder: "e.g. Brand's own Instagram only. No paid ads without separate agreement.", value: usageRights, onChange: setUsageRights },
+                      { label: "Exclusivity", placeholder: "e.g. No competing skincare brands for 30 days after posting.", value: exclusivity, onChange: setExclusivity },
+                      { label: "Revision Policy", placeholder: "e.g. Please send a draft for review before posting.", value: revisionPolicy, onChange: setRevisionPolicy },
+                      { label: "Product Shipment", placeholder: "e.g. Yes — face cream + SPF. Shipped within 7 days of deal acceptance.", value: productShipment, onChange: setProductShipment },
+                    ].map(({ label, placeholder, value, onChange }) => (
+                      <div key={label} style={{ marginBottom: "16px" }}>
+                        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", margin: "0 0 8px" }}>{label}</p>
+                        <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} style={{ width: "100%", padding: "12px 14px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "white", fontSize: "13px", fontFamily: "Georgia, serif", outline: "none" }} />
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <textarea
+                  placeholder="Tell them why you're the perfect fit — your niche, your audience, and what you can bring to their brand..."
+                  value={dealMessage}
+                  onChange={e => setDealMessage(e.target.value)}
+                  rows={5}
+                  style={{ padding: "14px 18px", backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", color: "white", fontSize: "14px", fontFamily: "Georgia, serif", outline: "none", resize: "none" }}
                 />
               )}
-              <div style={{ padding: "12px 16px", backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.4)", margin: "0", lineHeight: "1.6" }}>
-                  {canSendDeal
-                    ? "By sending this proposal, you agree that all deals must be completed through Pearup. A 12% platform fee applies."
-                    : "FTC notice: You must disclose this as a paid partnership in your content (#ad, #sponsored, or 'Paid partnership'). All deals must stay on Pearup."}
-                </p>
-              </div>
+
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "11px", color: "rgba(255,255,255,0.3)", margin: "0", lineHeight: "1.7" }}>
+                {canSendDeal
+                  ? "This proposal is binding once accepted. All terms above are part of the deal agreement per Pearup's Terms of Service. A 12% platform fee applies."
+                  : "FTC notice: You must disclose this as a paid partnership (#ad, #sponsored, or 'Paid partnership'). All deals must stay on Pearup."}
+              </p>
+
               <div style={{ display: "flex", gap: "12px" }}>
                 <button onClick={() => setShowDealForm(false)} style={{ flex: 1, background: "none", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.4)", padding: "14px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", cursor: "pointer" }}>Cancel</button>
-                <button onClick={handleSendDeal} disabled={!dealMessage || sendingDeal} style={{ flex: 2, backgroundColor: dealMessage ? "#c9a96e" : "rgba(201,169,110,0.3)", color: "#0a0a0a", padding: "14px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: dealMessage ? "pointer" : "not-allowed" }}>
-                  {sendingDeal ? "Sending..." : "Send"}
+                <button
+                  onClick={handleSendDeal}
+                  disabled={canSendDeal ? (!deliverables || !deadline || !platformFormat || !creativeDirection || !dealBudget || sendingDeal) : (!dealMessage || sendingDeal)}
+                  style={{ flex: 2, backgroundColor: (canSendDeal ? (deliverables && deadline && platformFormat && creativeDirection && dealBudget) : dealMessage) ? "#c9a96e" : "rgba(201,169,110,0.3)", color: "#0a0a0a", padding: "14px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer" }}
+                >
+                  {sendingDeal ? "Sending..." : "Send Proposal"}
                 </button>
               </div>
             </div>
