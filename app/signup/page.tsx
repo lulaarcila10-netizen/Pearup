@@ -13,10 +13,11 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [termsConfirmed, setTermsConfirmed] = useState(false);
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
-    if (!ageConfirmed) return;
+    if (!ageConfirmed || !termsConfirmed) return;
     setLoading(true);
     setError("");
 
@@ -69,18 +70,24 @@ export default function SignUp() {
         <label style={{ display: "flex", alignItems: "flex-start", gap: "12px", cursor: "pointer", textAlign: "left" }}>
           <input type="checkbox" checked={ageConfirmed} onChange={e => setAgeConfirmed(e.target.checked)} style={{ marginTop: "3px", accentColor: "#c9a96e", flexShrink: 0 }} />
           <span style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: "1.6" }}>
-            I confirm that I am 13 years of age or older. By creating an account I agree to Pearup's{" "}
-            <Link href="/terms" style={{ color: "#c9a96e", textDecoration: "underline" }}>Terms of Service</Link>
+            I confirm that I am <strong style={{ color: "rgba(255,255,255,0.85)" }}>13 years of age or older</strong> and understand that Pearup charges a <strong style={{ color: "#c9a96e" }}>12% platform fee</strong> on every completed deal.
+          </span>
+        </label>
+
+        <label style={{ display: "flex", alignItems: "flex-start", gap: "12px", cursor: "pointer", textAlign: "left" }}>
+          <input type="checkbox" checked={termsConfirmed} onChange={e => setTermsConfirmed(e.target.checked)} style={{ marginTop: "3px", accentColor: "#c9a96e", flexShrink: 0 }} />
+          <span style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: "1.6" }}>
+            I have read and agree to Pearup's{" "}
+            <Link href="/terms" target="_blank" style={{ color: "#c9a96e", textDecoration: "underline" }}>Terms of Service</Link>
             {" "}and{" "}
-            <Link href="/privacy" style={{ color: "#c9a96e", textDecoration: "underline" }}>Privacy Policy</Link>
-            , including the <strong style={{ color: "#c9a96e" }}>12% platform fee</strong> on every deal completed through the platform.
+            <Link href="/privacy" target="_blank" style={{ color: "#c9a96e", textDecoration: "underline" }}>Privacy Policy</Link>.
           </span>
         </label>
 
         <button
           type="submit"
-          disabled={loading || !ageConfirmed}
-          style={{ backgroundColor: ageConfirmed ? "#c9a96e" : "rgba(201,169,110,0.3)", color: "#0a0a0a", padding: "16px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: ageConfirmed ? "pointer" : "not-allowed", marginTop: "8px" }}
+          disabled={loading || !ageConfirmed || !termsConfirmed}
+          style={{ backgroundColor: (ageConfirmed && termsConfirmed) ? "#c9a96e" : "rgba(201,169,110,0.3)", color: "#0a0a0a", padding: "16px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: (ageConfirmed && termsConfirmed) ? "pointer" : "not-allowed", marginTop: "8px" }}
         >
           {loading ? "Creating Account..." : "Create Account"}
         </button>
