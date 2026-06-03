@@ -972,14 +972,23 @@ export default function Dashboard() {
       <div style={{ padding: "40px 24px", display: "flex", flexDirection: "column", alignItems: "center" }}>
         <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "4px", color: "#c9a96e", textTransform: "uppercase", marginBottom: "24px" }}>Profile</p>
 
-        <div style={{ width: "96px", height: "96px", borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(201,169,110,0.3)", marginBottom: "16px" }}>
-          {avatarPreview || profile?.avatar_url ? (
-            <img src={avatarPreview || profile?.avatar_url || ""} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          ) : (
-            <div style={{ width: "100%", height: "100%", backgroundColor: "rgba(201,169,110,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ color: "#c9a96e", fontFamily: "Arial", fontSize: "32px", fontWeight: "700" }}>{(profile?.full_name || "?")[0].toUpperCase()}</span>
-            </div>
-          )}
+        <div style={{ position: "relative", width: "96px", height: "96px", marginBottom: "16px" }}>
+          <div style={{ width: "96px", height: "96px", borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(201,169,110,0.3)" }}>
+            {avatarPreview || profile?.avatar_url ? (
+              <img src={avatarPreview || profile?.avatar_url || ""} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ) : (
+              <div style={{ width: "100%", height: "100%", backgroundColor: "rgba(201,169,110,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ color: "#c9a96e", fontFamily: "Arial", fontSize: "32px", fontWeight: "700" }}>{(profile?.full_name || "?")[0].toUpperCase()}</span>
+              </div>
+            )}
+          </div>
+          <button onClick={() => router.push(isBrand ? "/edit-profile/brand" : "/edit-profile/creator")}
+            style={{ position: "absolute", bottom: "2px", right: "2px", width: "28px", height: "28px", borderRadius: "50%", backgroundColor: "#c9a96e", border: "2px solid #0a0a0a", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="2.5">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
         </div>
 
         <label style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", cursor: "pointer", border: "1px solid rgba(201,169,110,0.3)", padding: "8px 16px", marginBottom: "8px" }}>
@@ -993,13 +1002,8 @@ export default function Dashboard() {
           </button>
         )}
 
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "8px", marginBottom: "24px" }}>
-          <div>
-            <p style={{ fontFamily: "Arial", fontSize: "18px", fontWeight: "600", color: "white", marginBottom: "4px", margin: "0 0 4px" }}>{isBrand ? (brandName || "—") : (profile?.full_name || "—")}</p>
-            <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", margin: "0" }}>{isBrand ? "Brand" : "Creator"}</p>
-          </div>
-          <button onClick={() => router.push(isBrand ? "/edit-profile/brand" : "/edit-profile/creator")} style={{ background: "none", border: "1px solid rgba(201,169,110,0.35)", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", padding: "6px 12px", cursor: "pointer", flexShrink: 0 }}>Edit Profile</button>
-        </div>
+        <p style={{ fontFamily: "Arial", fontSize: "18px", fontWeight: "600", color: "white", margin: "8px 0 4px", textAlign: "center" }}>{isBrand ? (brandName || "—") : (profile?.full_name || "—")}</p>
+        <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", margin: "0 0 24px", textAlign: "center" }}>{isBrand ? "Brand" : "Creator"}</p>
 
         {!isBrand && creatorStats !== null && (() => {
           let score = 0;
@@ -1037,7 +1041,7 @@ export default function Dashboard() {
               </label>
             )}
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "4px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "4px", maxWidth: "270px", margin: "0 auto" }}>
             {Array.from({ length: 9 }).map((_, i) => {
               const img = portfolio[i];
               if (img) {
