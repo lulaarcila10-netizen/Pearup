@@ -69,7 +69,11 @@ export default function SignUp() {
         <label style={{ display: "flex", alignItems: "flex-start", gap: "12px", cursor: "pointer", textAlign: "left" }}>
           <input type="checkbox" checked={ageConfirmed} onChange={e => setAgeConfirmed(e.target.checked)} style={{ marginTop: "3px", accentColor: "#c9a96e", flexShrink: 0 }} />
           <span style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: "1.6" }}>
-            I confirm that I am 13 years of age or older. By creating an account I agree that Pearup charges a <strong style={{ color: "#c9a96e" }}>12% platform fee</strong> on every deal completed through the platform.
+            I confirm that I am 13 years of age or older. By creating an account I agree to Pearup's{" "}
+            <Link href="/terms" style={{ color: "#c9a96e", textDecoration: "underline" }}>Terms of Service</Link>
+            {" "}and{" "}
+            <Link href="/privacy" style={{ color: "#c9a96e", textDecoration: "underline" }}>Privacy Policy</Link>
+            , including the <strong style={{ color: "#c9a96e" }}>12% platform fee</strong> on every deal completed through the platform.
           </span>
         </label>
 
