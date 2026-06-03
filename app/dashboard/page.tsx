@@ -604,42 +604,36 @@ export default function Dashboard() {
         <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "24px" }}>
           {"The easiest way to collab, get paid, and grow."}
         </p>
-        {/* Niche filter — both sides */}
-        <div style={{ marginBottom: isBrand ? "12px" : "32px" }}>
-          {isBrand && <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: "0 0 8px" }}>Niche</p>}
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+        {/* Filters */}
+        {isBrand ? (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "28px" }}>
+            {[
+              { label: "Niche", value: activeFilter || "", onChange: (v: string) => filterByNiche(v || null), options: NICHES },
+              { label: "Platform", value: activePlatform || "", onChange: (v: string) => filterByPlatform(v || null), options: ["Instagram", "TikTok", "YouTube", "Pinterest"] },
+              { label: "Followers", value: activeFollower?.toString() || "", onChange: (v: string) => filterByFollower(v ? Number(v) : null), options: [{ label: "1K – 10K", value: "1000" }, { label: "10K – 50K", value: "10000" }, { label: "50K – 100K", value: "50000" }, { label: "100K – 500K", value: "100000" }, { label: "500K+", value: "500000" }] },
+              { label: "Rate / Post", value: activeRate?.toString() || "", onChange: (v: string) => filterByRate(v ? Number(v) : null), options: [{ label: "$100 – $500", value: "100" }, { label: "$500 – $1K", value: "500" }, { label: "$1K – $5K", value: "1000" }, { label: "$5K – $15K", value: "5000" }, { label: "$15K+", value: "15000" }] },
+            ].map(({ label, value, onChange, options }) => (
+              <div key={label} style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <label style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>{label}</label>
+                <select
+                  value={value}
+                  onChange={e => onChange(e.target.value)}
+                  style={{ padding: "9px 10px", backgroundColor: "rgba(255,255,255,0.05)", border: `1px solid ${value ? "#c9a96e" : "rgba(255,255,255,0.12)"}`, color: value ? "#c9a96e" : "rgba(255,255,255,0.65)", fontFamily: "Arial", fontSize: "10px", outline: "none", cursor: "pointer", appearance: "none", WebkitAppearance: "none" }}
+                >
+                  <option value="" style={{ backgroundColor: "#0a0a0a" }}>All</option>
+                  {options.map((o: any) => typeof o === "string"
+                    ? <option key={o} value={o} style={{ backgroundColor: "#0a0a0a" }}>{o}</option>
+                    : <option key={o.value} value={o.value} style={{ backgroundColor: "#0a0a0a" }}>{o.label}</option>
+                  )}
+                </select>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "32px" }}>
             <button onClick={() => filterByNiche(null)} style={filterStyle(!activeFilter)}>All</button>
             {NICHES.map(n => <button key={n} onClick={() => filterByNiche(n)} style={filterStyle(activeFilter === n)}>{n}</button>)}
           </div>
-        </div>
-
-        {/* Extra filters — brands only */}
-        {isBrand && (
-          <>
-            <div style={{ marginBottom: "12px" }}>
-              <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: "0 0 8px" }}>Platform</p>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <button onClick={() => filterByPlatform(null)} style={filterStyle(!activePlatform)}>All</button>
-                {["Instagram", "TikTok", "YouTube", "Pinterest"].map(p => <button key={p} onClick={() => filterByPlatform(p)} style={filterStyle(activePlatform === p)}>{p}</button>)}
-              </div>
-            </div>
-
-            <div style={{ marginBottom: "12px" }}>
-              <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: "0 0 8px" }}>Followers</p>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <button onClick={() => filterByFollower(null)} style={filterStyle(!activeFollower)}>All</button>
-                {[{ label: "1K – 10K", min: 1000 }, { label: "10K – 50K", min: 10000 }, { label: "50K – 100K", min: 50000 }, { label: "100K – 500K", min: 100000 }, { label: "500K+", min: 500000 }].map(r => <button key={r.min} onClick={() => filterByFollower(r.min)} style={filterStyle(activeFollower === r.min)}>{r.label}</button>)}
-              </div>
-            </div>
-
-            <div style={{ marginBottom: "32px" }}>
-              <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: "0 0 8px" }}>Rate per Post</p>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <button onClick={() => filterByRate(null)} style={filterStyle(!activeRate)}>All</button>
-                {[{ label: "$100 – $500", min: 100 }, { label: "$500 – $1K", min: 500 }, { label: "$1K – $5K", min: 1000 }, { label: "$5K – $15K", min: 5000 }, { label: "$15K+", min: 15000 }].map(r => <button key={r.min} onClick={() => filterByRate(r.min)} style={filterStyle(activeRate === r.min)}>{r.label}</button>)}
-              </div>
-            </div>
-          </>
         )}
         {discoverLoading ? (
           <p style={{ color: "#c9a96e", fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", textAlign: "center", padding: "40px 0" }}>Loading...</p>
