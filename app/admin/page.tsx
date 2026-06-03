@@ -68,6 +68,19 @@ export default function AdminPage() {
   const [sendingReply, setSendingReply] = useState(false);
 
   useEffect(() => {
+    if (!activeSupportUser) return;
+    const ch = supabase.channel(`admin-support-${activeSupportUser.user_id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "support_messages", filter: `user_id=eq.${activeSupportUser.user_id}` }, payload => {
+        setSupportMsgs(prev => {
+          const msg = payload.new as SupportMsg;
+          if (prev.some(m => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
+      }).subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [activeSupportUser?.user_id]);
+
+  useEffect(() => {
     async function checkAdmin() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push("/login"); return; }
@@ -345,10 +358,9 @@ export default function AdminPage() {
                         const content = supportReply.trim();
                         setSupportReply("");
                         await supabase.from("support_messages").insert({ user_id: activeSupportUser.user_id, sender_type: "admin", content });
-                        setSupportMsgs(prev => [...prev, { id: Date.now().toString(), user_id: activeSupportUser.user_id, sender_type: "admin", content, created_at: new Date().toISOString() }]);
                         setSendingReply(false);
                       }} disabled={!supportReply.trim() || sendingReply} style={{ backgroundColor: supportReply.trim() ? "#c9a96e" : "rgba(201,169,110,0.3)", color: "#0a0a0a", padding: "12px 18px", fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: supportReply.trim() ? "pointer" : "not-allowed", alignSelf: "flex-end" }}>
-                        Reply
+                        {sendingReply ? "Sending..." : "Reply"}
                       </button>
                     </div>
                   </>
