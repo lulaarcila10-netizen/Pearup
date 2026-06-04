@@ -1339,25 +1339,37 @@ export default function Dashboard() {
               )}
             </div>
           )}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "4px", maxWidth: "450px", margin: "0 auto" }}>
-            {Array.from({ length: 9 }).map((_, i) => {
-              const img = portfolio[i];
-              if (img) {
+          {!isBrand && portfolio.length > 0 && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "3px" }}>
+              {portfolio.map(img => (
+                <div key={img.id} style={{ position: "relative", aspectRatio: "1", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.04)" }}>
+                  <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  <button onClick={() => handleDeletePortfolioImage(img.id)} style={{ position: "absolute", top: "4px", right: "4px", background: "rgba(0,0,0,0.7)", border: "none", color: "white", width: "20px", height: "20px", cursor: "pointer", fontSize: "12px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%" }}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+          {isBrand && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "3px" }}>
+              {Array.from({ length: 9 }).map((_, i) => {
+                const img = portfolio[i];
+                if (img) {
+                  return (
+                    <div key={img.id} style={{ position: "relative", aspectRatio: "1", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.04)" }}>
+                      <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                      <button onClick={() => handleDeletePortfolioImage(img.id)} style={{ position: "absolute", top: "4px", right: "4px", background: "rgba(0,0,0,0.7)", border: "none", color: "white", width: "20px", height: "20px", cursor: "pointer", fontSize: "12px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%" }}>×</button>
+                    </div>
+                  );
+                }
                 return (
-                  <div key={img.id} style={{ position: "relative", aspectRatio: "1", overflow: "hidden" }}>
-                    <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    <button onClick={() => handleDeletePortfolioImage(img.id)} style={{ position: "absolute", top: "4px", right: "4px", background: "rgba(0,0,0,0.7)", border: "none", color: "white", width: "20px", height: "20px", cursor: "pointer", fontSize: "12px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%" }}>×</button>
-                  </div>
+                  <label key={`empty-${i}`} style={{ aspectRatio: "1", border: "1px dashed rgba(201,169,110,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: portfolio.length < 9 ? "pointer" : "default", backgroundColor: "rgba(255,255,255,0.02)" }}>
+                    <span style={{ color: "rgba(201,169,110,0.3)", fontSize: "20px", lineHeight: "1" }}>+</span>
+                    {portfolio.length < 9 && <input type="file" accept="image/*" multiple onChange={handlePortfolioUpload} style={{ display: "none" }} disabled={uploadingPortfolio} />}
+                  </label>
                 );
-              }
-              return (
-                <label key={`empty-${i}`} style={{ aspectRatio: "1", border: "1px dashed rgba(201,169,110,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: portfolio.length < 9 ? "pointer" : "default" }}>
-                  <span style={{ color: "rgba(201,169,110,0.3)", fontSize: "20px", lineHeight: "1" }}>+</span>
-                  {portfolio.length < 9 && <input type="file" accept="image/*" multiple onChange={handlePortfolioUpload} style={{ display: "none" }} disabled={uploadingPortfolio} />}
-                </label>
-              );
-            })}
-          </div>
+              })}
+            </div>
+          )}
         </div>
 
         <button onClick={handleLogout} style={{ border: "1px solid rgba(255,255,255,0.15)", background: "none", color: "rgba(255,255,255,0.65)", fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", padding: "14px 32px", cursor: "pointer" }}>
