@@ -271,9 +271,9 @@ export default function ProfilePage() {
         {profileData.type === "creator" && portfolio.length > 0 && (
           <div style={{ marginBottom: "32px" }}>
             <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "3px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: "12px" }}>Their Vibe</p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "3px", width: "100%" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 80px)", gap: "2px", justifyContent: "center" }}>
               {portfolio.map(pic => (
-                <div key={pic.id} style={{ aspectRatio: "1", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.04)" }}>
+                <div key={pic.id} style={{ width: "80px", height: "80px", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.04)" }}>
                   <img src={pic.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                 </div>
               ))}

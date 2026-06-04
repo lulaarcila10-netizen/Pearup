@@ -1340,9 +1340,9 @@ export default function Dashboard() {
             </div>
           )}
           {!isBrand && portfolio.length > 0 && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "3px", width: "100%" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 80px)", gap: "2px", justifyContent: "center" }}>
               {portfolio.map(img => (
-                <div key={img.id} style={{ position: "relative", aspectRatio: "1", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.04)" }}>
+                <div key={img.id} style={{ position: "relative", width: "80px", height: "80px", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.04)" }}>
                   <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                   <button onClick={() => handleDeletePortfolioImage(img.id)} style={{ position: "absolute", top: "4px", right: "4px", background: "rgba(0,0,0,0.7)", border: "none", color: "white", width: "20px", height: "20px", cursor: "pointer", fontSize: "12px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%" }}>×</button>
                 </div>
@@ -1350,19 +1350,19 @@ export default function Dashboard() {
             </div>
           )}
           {isBrand && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "3px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 80px)", gap: "2px", justifyContent: "center" }}>
               {Array.from({ length: 9 }).map((_, i) => {
                 const img = portfolio[i];
                 if (img) {
                   return (
-                    <div key={img.id} style={{ position: "relative", aspectRatio: "1", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.04)" }}>
+                    <div key={img.id} style={{ position: "relative", width: "80px", height: "80px", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.04)" }}>
                       <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                       <button onClick={() => handleDeletePortfolioImage(img.id)} style={{ position: "absolute", top: "4px", right: "4px", background: "rgba(0,0,0,0.7)", border: "none", color: "white", width: "20px", height: "20px", cursor: "pointer", fontSize: "12px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%" }}>×</button>
                     </div>
                   );
                 }
                 return (
-                  <label key={`empty-${i}`} style={{ aspectRatio: "1", border: "1px dashed rgba(201,169,110,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: portfolio.length < 9 ? "pointer" : "default", backgroundColor: "rgba(255,255,255,0.02)" }}>
+                  <label key={`empty-${i}`} style={{ width: "80px", height: "80px", border: "1px dashed rgba(201,169,110,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: portfolio.length < 9 ? "pointer" : "default", backgroundColor: "rgba(255,255,255,0.02)" }}>
                     <span style={{ color: "rgba(201,169,110,0.3)", fontSize: "20px", lineHeight: "1" }}>+</span>
                     {portfolio.length < 9 && <input type="file" accept="image/*" multiple onChange={handlePortfolioUpload} style={{ display: "none" }} disabled={uploadingPortfolio} />}
                   </label>
