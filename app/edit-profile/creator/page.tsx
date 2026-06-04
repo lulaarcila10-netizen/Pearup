@@ -37,7 +37,8 @@ export default function EditCreatorProfile() {
   const [selectedRate, setSelectedRate] = useState<{ label: string; min: number } | null>(null);
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [payoutMethod, setPayoutMethod] = useState("");
+  const [payoutService, setPayoutService] = useState("");
+  const [payoutHandle, setPayoutHandle] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
@@ -67,7 +68,11 @@ export default function EditCreatorProfile() {
         if (fr) setSelectedFollowers(fr);
         const rr = RATE_RANGES.find(r => r.min === cp.rate_per_post);
         if (rr) setSelectedRate(rr);
-        setPayoutMethod(cp.payout_method || "");
+        if (cp.payout_method) {
+          const [svc, ...rest] = cp.payout_method.split(" ");
+          setPayoutService(svc || "");
+          setPayoutHandle(rest.join(" ") || "");
+        }
       }
       setLoading(false);
     }
@@ -100,7 +105,7 @@ export default function EditCreatorProfile() {
         rate_per_post: selectedRate?.min || null,
         niche: selectedNiches,
         platforms: selectedPlatforms,
-        payout_method: payoutMethod || null,
+        payout_method: (payoutService && payoutHandle) ? `${payoutService} ${payoutHandle}` : null,
       }).eq("id", userId),
     ]);
 
@@ -229,13 +234,27 @@ export default function EditCreatorProfile() {
 
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "24px" }}>
           <label style={labelStyle}>Payout Method <span style={{ color: "#c9a96e" }}>*</span></label>
-          <input
-            type="text"
-            placeholder="e.g. Venmo @yourhandle  |  PayPal you@email.com  |  CashApp $tag"
-            value={payoutMethod}
-            onChange={e => setPayoutMethod(e.target.value)}
-            style={inputStyle}
-          />
+          <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
+            {["Zelle", "Venmo", "PayPal"].map(svc => (
+              <button
+                key={svc}
+                type="button"
+                onClick={() => setPayoutService(svc)}
+                style={{ flex: 1, padding: "12px", border: `1px solid ${payoutService === svc ? "#c9a96e" : "rgba(255,255,255,0.12)"}`, backgroundColor: payoutService === svc ? "rgba(201,169,110,0.12)" : "transparent", color: payoutService === svc ? "#c9a96e" : "rgba(255,255,255,0.45)", fontFamily: "Arial", fontSize: "11px", letterSpacing: "1px", cursor: "pointer" }}
+              >
+                {svc}
+              </button>
+            ))}
+          </div>
+          {payoutService && (
+            <input
+              type="text"
+              placeholder={payoutService === "Zelle" ? "Phone number or email" : payoutService === "Venmo" ? "@yourhandle" : "PayPal email address"}
+              value={payoutHandle}
+              onChange={e => setPayoutHandle(e.target.value)}
+              style={inputStyle}
+            />
+          )}
           <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.3)", margin: "10px 0 0", lineHeight: "1.6" }}>
             🔒 Private — only visible to Pearup. Brands cannot see this. This is how we send you your payment after a deal is approved.
           </p>
