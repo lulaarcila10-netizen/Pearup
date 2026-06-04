@@ -152,6 +152,7 @@ export default function Dashboard() {
   const [creatorStats, setCreatorStats] = useState<{ bio: string | null; niche: string[]; follower_count: number | null; rate_per_post: number | null } | null>(null);
   const [showSupport, setShowSupport] = useState(false);
   const [showPaymentInfo, setShowPaymentInfo] = useState(false);
+  const [showPortfolioInfo, setShowPortfolioInfo] = useState(false);
   const [dismissedCompletion, setDismissedCompletion] = useState(() => {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("pearup_profile_complete") === "true";
@@ -1314,24 +1315,30 @@ export default function Dashboard() {
         })()}
 
         <div style={{ width: "100%", marginBottom: "40px" }}>
-          {!isBrand && (
-            <div style={{ marginBottom: "20px", padding: "16px 18px", border: "1px solid rgba(201,169,110,0.12)", backgroundColor: "rgba(201,169,110,0.03)" }}>
-              <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", margin: "0 0 6px" }}>Your Portfolio</p>
-              <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.55)", margin: "0 0 4px", lineHeight: "1.7" }}>Upload 3–9 photos that represent your content style — no handles or usernames in the frame.</p>
-              <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.3)", margin: "0", fontStyle: "italic", lineHeight: "1.6" }}>Think mood, aesthetic, past collabs. This is what brands see first.</p>
-            </div>
-          )}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
             <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "3px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", margin: "0" }}>
               {isBrand ? "Product Photos" : "Photos"} ({portfolio.length}/9)
             </p>
             {portfolio.length < 9 && (
-              <label style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", cursor: "pointer", border: "1px solid rgba(201,169,110,0.3)", padding: "6px 12px" }}>
-                {uploadingPortfolio ? "Uploading..." : "+ Add Photos"}
+              <label style={{ display: "flex", alignItems: "center", gap: "6px", fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", cursor: "pointer", border: "1px solid rgba(201,169,110,0.3)", padding: "6px 14px" }}>
+                {uploadingPortfolio ? "Uploading..." : "Upload ↑"}
                 <input type="file" accept="image/*" multiple onChange={handlePortfolioUpload} style={{ display: "none" }} disabled={uploadingPortfolio} />
               </label>
             )}
           </div>
+          {!isBrand && (
+            <div style={{ marginBottom: "16px" }}>
+              <button onClick={() => setShowPortfolioInfo(p => !p)} style={{ background: "none", border: "none", padding: "0", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px" }}>
+                <span style={{ fontFamily: "Georgia, serif", fontSize: "11px", color: "rgba(255,255,255,0.28)", fontStyle: "italic" }}>Think mood, aesthetic, past collabs — no handles in frame</span>
+                <span style={{ color: "rgba(255,255,255,0.25)", fontSize: "10px", transform: showPortfolioInfo ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease", display: "inline-block" }}>▾</span>
+              </button>
+              {showPortfolioInfo && (
+                <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.35)", margin: "8px 0 0", lineHeight: "1.7", fontStyle: "italic" }}>
+                  Upload 3–9 photos that represent your content style. No handles or usernames in the frame — brands discover you here first.
+                </p>
+              )}
+            </div>
+          )}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "4px", maxWidth: "450px", margin: "0 auto" }}>
             {Array.from({ length: 9 }).map((_, i) => {
               const img = portfolio[i];
