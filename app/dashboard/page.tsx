@@ -1314,9 +1314,16 @@ export default function Dashboard() {
         })()}
 
         <div style={{ width: "100%", marginBottom: "40px" }}>
+          {!isBrand && (
+            <div style={{ marginBottom: "20px", padding: "16px 18px", border: "1px solid rgba(201,169,110,0.12)", backgroundColor: "rgba(201,169,110,0.03)" }}>
+              <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", margin: "0 0 6px" }}>Your Portfolio</p>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.55)", margin: "0 0 4px", lineHeight: "1.7" }}>Upload 3–9 photos that represent your content style — no handles or usernames in the frame.</p>
+              <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.3)", margin: "0", fontStyle: "italic", lineHeight: "1.6" }}>Think mood, aesthetic, past collabs. This is what brands see first.</p>
+            </div>
+          )}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
             <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "3px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", margin: "0" }}>
-              {isBrand ? "Product Photos" : "Portfolio"} ({portfolio.length}/9)
+              {isBrand ? "Product Photos" : "Photos"} ({portfolio.length}/9)
             </p>
             {portfolio.length < 9 && (
               <label style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", cursor: "pointer", border: "1px solid rgba(201,169,110,0.3)", padding: "6px 12px" }}>
