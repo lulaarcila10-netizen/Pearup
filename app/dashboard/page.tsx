@@ -1329,7 +1329,7 @@ export default function Dashboard() {
           {!isBrand && (
             <div style={{ marginBottom: "16px" }}>
               <button onClick={() => setShowPortfolioInfo(p => !p)} style={{ background: "none", border: "none", padding: "0", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px" }}>
-                <span style={{ fontFamily: "Georgia, serif", fontSize: "11px", color: "rgba(255,255,255,0.28)", fontStyle: "italic" }}>Upload 3–9 photos that represent your content style — no handles in frame</span>
+                <span style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>Upload 3–9 photos that represent your content style — no handles in frame</span>
                 <span style={{ color: "rgba(255,255,255,0.25)", fontSize: "10px", transform: showPortfolioInfo ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease", display: "inline-block" }}>▾</span>
               </button>
               {showPortfolioInfo && (
