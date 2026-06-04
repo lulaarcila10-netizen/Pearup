@@ -1329,12 +1329,12 @@ export default function Dashboard() {
           {!isBrand && (
             <div style={{ marginBottom: "16px" }}>
               <button onClick={() => setShowPortfolioInfo(p => !p)} style={{ background: "none", border: "none", padding: "0", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px" }}>
-                <span style={{ fontFamily: "Georgia, serif", fontSize: "11px", color: "rgba(255,255,255,0.28)", fontStyle: "italic" }}>Think mood, aesthetic, past collabs — no handles in frame</span>
+                <span style={{ fontFamily: "Georgia, serif", fontSize: "11px", color: "rgba(255,255,255,0.28)", fontStyle: "italic" }}>Upload 3–9 photos that represent your content style — no handles in frame</span>
                 <span style={{ color: "rgba(255,255,255,0.25)", fontSize: "10px", transform: showPortfolioInfo ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease", display: "inline-block" }}>▾</span>
               </button>
               {showPortfolioInfo && (
                 <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.35)", margin: "8px 0 0", lineHeight: "1.7", fontStyle: "italic" }}>
-                  Upload 3–9 photos that represent your content style. No handles or usernames in the frame — brands discover you here first.
+                  Think mood, aesthetic, past collabs. This is what brands see first.
                 </p>
               )}
             </div>
