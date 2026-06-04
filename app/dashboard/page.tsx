@@ -152,7 +152,10 @@ export default function Dashboard() {
   const [creatorStats, setCreatorStats] = useState<{ bio: string | null; niche: string[]; follower_count: number | null; rate_per_post: number | null } | null>(null);
   const [showSupport, setShowSupport] = useState(false);
   const [showPaymentInfo, setShowPaymentInfo] = useState(false);
-  const [dismissedCompletion, setDismissedCompletion] = useState(false);
+  const [dismissedCompletion, setDismissedCompletion] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("pearup_profile_complete") === "true";
+  });
   const [supportMessages, setSupportMessages] = useState<SupportMsg[]>([]);
   const [supportInput, setSupportInput] = useState("");
   const [sendingSupport, setSendingSupport] = useState(false);
@@ -355,14 +358,17 @@ export default function Dashboard() {
   }, [activeTab, userId, profile?.user_type, creatorStats]);
 
   useEffect(() => {
-    if (activeTab === "profile" || !creatorStats || isBrand || dismissedCompletion) return;
+    if (!creatorStats || isBrand || dismissedCompletion) return;
     let score = 0;
     if (profile?.avatar_url) score += 25;
     if (creatorStats.bio) score += 25;
     if (creatorStats.niche?.length > 0) score += 25;
     if (creatorStats.follower_count) score += 25;
-    if (score === 100) setDismissedCompletion(true);
-  }, [activeTab]);
+    if (score === 100) {
+      localStorage.setItem("pearup_profile_complete", "true");
+      setDismissedCompletion(true);
+    }
+  }, [creatorStats, profile?.avatar_url]);
 
   async function handleDealAction(dealId: string, action: "accepted" | "declined") {
     await supabase.from("deals").update({ status: action }).eq("id", dealId);
