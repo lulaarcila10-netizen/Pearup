@@ -152,6 +152,7 @@ export default function Dashboard() {
   const [creatorStats, setCreatorStats] = useState<{ bio: string | null; niche: string[]; follower_count: number | null; rate_per_post: number | null } | null>(null);
   const [showSupport, setShowSupport] = useState(false);
   const [showPaymentInfo, setShowPaymentInfo] = useState(false);
+  const [dismissedCompletion, setDismissedCompletion] = useState(false);
   const [supportMessages, setSupportMessages] = useState<SupportMsg[]>([]);
   const [supportInput, setSupportInput] = useState("");
   const [sendingSupport, setSendingSupport] = useState(false);
@@ -352,6 +353,16 @@ export default function Dashboard() {
       setCreatorStats(data || { bio: null, niche: [], follower_count: null, rate_per_post: null });
     });
   }, [activeTab, userId, profile?.user_type, creatorStats]);
+
+  useEffect(() => {
+    if (activeTab === "profile" || !creatorStats || isBrand || dismissedCompletion) return;
+    let score = 0;
+    if (profile?.avatar_url) score += 25;
+    if (creatorStats.bio) score += 25;
+    if (creatorStats.niche?.length > 0) score += 25;
+    if (creatorStats.follower_count) score += 25;
+    if (score === 100) setDismissedCompletion(true);
+  }, [activeTab]);
 
   async function handleDealAction(dealId: string, action: "accepted" | "declined") {
     await supabase.from("deals").update({ status: action }).eq("id", dealId);
@@ -1207,7 +1218,7 @@ export default function Dashboard() {
         <p style={{ fontFamily: "Arial", fontSize: "18px", fontWeight: "600", color: "white", margin: "8px 0 4px", textAlign: "center" }}>{isBrand ? (brandName || "—") : (profile?.full_name || "—")}</p>
         <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", margin: "0 0 24px", textAlign: "center" }}>{isBrand ? "Brand" : "Creator"}</p>
 
-        {!isBrand && creatorStats !== null && (() => {
+        {!isBrand && creatorStats !== null && !dismissedCompletion && (() => {
           let score = 0;
           if (profile?.avatar_url) score += 25;
           if (creatorStats.bio) score += 25;
