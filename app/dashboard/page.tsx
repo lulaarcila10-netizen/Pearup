@@ -1340,7 +1340,7 @@ export default function Dashboard() {
             </div>
           )}
           {!isBrand && portfolio.length > 0 && (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "3px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "3px", width: "100%" }}>
               {portfolio.map(img => (
                 <div key={img.id} style={{ position: "relative", aspectRatio: "1", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.04)" }}>
                   <img src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
