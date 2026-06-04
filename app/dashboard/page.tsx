@@ -602,6 +602,58 @@ export default function Dashboard() {
     );
   }
 
+  function parseProposal(message: string) {
+    const lines = message.split("\n");
+    const fields: { key: string; value: string }[] = [];
+    for (const line of lines) {
+      const idx = line.indexOf(": ");
+      if (idx > -1) fields.push({ key: line.slice(0, idx), value: line.slice(idx + 2) });
+    }
+    return fields.length >= 3 ? fields : null;
+  }
+
+  function titleCase(str: string) {
+    return str.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+  }
+
+  function ProposalCard({ message }: { message: string }) {
+    const fields = parseProposal(message);
+    if (!fields) {
+      return <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "rgba(255,255,255,0.7)", margin: "0", lineHeight: "1.7" }}>"{message}"</p>;
+    }
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: "16px", width: "100%", textAlign: "left" }}>
+        {fields.map(({ key, value }) => (
+          <div key={key} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "14px" }}>
+            <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(201,169,110,0.6)", textTransform: "uppercase", margin: "0 0 5px" }}>{titleCase(key)}</p>
+            <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "rgba(255,255,255,0.85)", margin: "0", lineHeight: "1.6" }}>{value}</p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  function DealMessagePreview({ message }: { message: string }) {
+    const fields = parseProposal(message);
+    if (!fields) {
+      return <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.72)", lineHeight: "1.7", margin: "0 0 16px" }}>"{message.length > 100 ? message.slice(0, 100) + "…" : message}"</p>;
+    }
+    const overview = fields.find(f => f.key === "PROPOSAL")?.value || "";
+    const budget = fields.find(f => f.key === "BUDGET")?.value || "";
+    const platform = fields.find(f => f.key === "PLATFORM")?.value || "";
+    const format = fields.find(f => f.key === "FORMAT")?.value || "";
+    return (
+      <div style={{ marginBottom: "16px", padding: "14px", backgroundColor: "rgba(201,169,110,0.04)", border: "1px solid rgba(201,169,110,0.12)" }}>
+        <div style={{ display: "flex", gap: "8px", marginBottom: overview ? "10px" : "0", flexWrap: "wrap" }}>
+          {budget && <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", color: "#c9a96e", border: "1px solid rgba(201,169,110,0.3)", padding: "3px 8px", textTransform: "uppercase" }}>{budget}</span>}
+          {platform && <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.1)", padding: "3px 8px", textTransform: "uppercase" }}>{platform}</span>}
+          {format && <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", color: "rgba(255,255,255,0.45)", border: "1px solid rgba(255,255,255,0.1)", padding: "3px 8px", textTransform: "uppercase" }}>{format}</span>}
+        </div>
+        {overview && <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.65)", margin: "0", lineHeight: "1.6" }}>{overview.length > 100 ? overview.slice(0, 100) + "…" : overview}</p>}
+      </div>
+    );
+  }
+
   const filterStyle = (active: boolean) => ({
     padding: "7px 14px",
     border: `1px solid ${active ? "#c9a96e" : "rgba(255,255,255,0.12)"}`,
@@ -790,9 +842,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.72)", lineHeight: "1.7", margin: "0 0 16px" }}>
-                  "{deal.message.length > 120 ? deal.message.slice(0, 120) + "…" : deal.message}"
-                </p>
+                <DealMessagePreview message={deal.message} />
 
                 {deal.status === "pending" && deal.initiated_by !== null && deal.initiated_by !== userId && (
                   <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -1032,11 +1082,9 @@ export default function Dashboard() {
           {/* Messages list */}
           <div style={{ flex: 1, overflowY: "auto", padding: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
             {/* Original proposal */}
-            <div style={{ alignSelf: "center", textAlign: "center", marginBottom: "8px" }}>
-              <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.45)", textTransform: "uppercase", marginBottom: "8px" }}>Deal Accepted · Original Proposal</p>
-              <div style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", padding: "12px 16px", maxWidth: "280px" }}>
-                <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.65)", margin: "0", lineHeight: "1.6" }}>"{activeConversation.message}"</p>
-              </div>
+            <div style={{ alignSelf: "stretch", marginBottom: "8px", padding: "20px", backgroundColor: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: "16px", textAlign: "center" }}>Original Proposal</p>
+              <ProposalCard message={activeConversation.message} />
             </div>
 
             {chatMessages.length === 0 && (
