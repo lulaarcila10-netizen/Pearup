@@ -1195,28 +1195,23 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-          <button onClick={() => router.push(isBrand ? "/edit-profile/brand" : "/edit-profile/creator")}
-            style={{ position: "absolute", bottom: "2px", right: "2px", width: "28px", height: "28px", borderRadius: "50%", backgroundColor: "#c9a96e", border: "2px solid #0a0a0a", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="2.5">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-          </button>
+          <label style={{ position: "absolute", bottom: "2px", right: "2px", width: "28px", height: "28px", borderRadius: "50%", backgroundColor: "#c9a96e", border: "2px solid #0a0a0a", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M9 2h6l1.5 2H18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1.5L9 2z"/></svg>
+            <input type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: "none" }} />
+          </label>
         </div>
 
-        <label style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", cursor: "pointer", border: "1px solid rgba(201,169,110,0.3)", padding: "8px 16px", marginBottom: "8px" }}>
-          {avatarPreview ? "Change Photo" : "Upload Photo"}
-          <input type="file" accept="image/*" onChange={handleAvatarChange} style={{ display: "none" }} />
-        </label>
-
         {avatarFile && (
-          <button onClick={handlePhotoUpload} disabled={uploadingPhoto} style={{ backgroundColor: "#c9a96e", color: "#0a0a0a", padding: "10px 24px", fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer", marginBottom: "32px" }}>
+          <button onClick={handlePhotoUpload} disabled={uploadingPhoto} style={{ backgroundColor: "#c9a96e", color: "#0a0a0a", padding: "10px 24px", fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer", marginBottom: "16px" }}>
             {uploadingPhoto ? "Saving..." : "Save Photo"}
           </button>
         )}
 
         <p style={{ fontFamily: "Arial", fontSize: "18px", fontWeight: "600", color: "white", margin: "8px 0 4px", textAlign: "center" }}>{isBrand ? (brandName || "—") : (profile?.full_name || "—")}</p>
-        <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", margin: "0 0 24px", textAlign: "center" }}>{isBrand ? "Brand" : "Creator"}</p>
+        <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "2px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", margin: "0 0 12px", textAlign: "center" }}>{isBrand ? "Brand" : "Creator"}</p>
+        <button onClick={() => router.push(isBrand ? "/edit-profile/brand" : "/edit-profile/creator")} style={{ background: "none", border: "none", fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", cursor: "pointer", marginBottom: "24px", textDecoration: "underline" }}>
+          Edit Profile
+        </button>
 
         {!isBrand && creatorStats !== null && !dismissedCompletion && (() => {
           let score = 0;
