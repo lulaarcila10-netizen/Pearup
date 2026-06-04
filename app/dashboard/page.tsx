@@ -1213,6 +1213,28 @@ export default function Dashboard() {
           Edit Profile
         </button>
 
+        {!isBrand && creatorStats && (
+          <div style={{ width: "100%", marginBottom: "28px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
+            <div style={{ display: "flex", gap: "32px" }}>
+              <div style={{ textAlign: "center" }}>
+                <p style={{ fontFamily: "Arial", fontSize: "14px", fontWeight: "700", color: "#c9a96e", margin: "0 0 4px" }}>{creatorStats.follower_count ? displayFollowers(creatorStats.follower_count) : "—"}</p>
+                <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: "0" }}>Followers</p>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <p style={{ fontFamily: "Arial", fontSize: "14px", fontWeight: "700", color: "#c9a96e", margin: "0 0 4px" }}>{creatorStats.rate_per_post ? displayRate(creatorStats.rate_per_post) : "—"}</p>
+                <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", margin: "0" }}>Per Post</p>
+              </div>
+            </div>
+            {creatorStats.niche?.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center" }}>
+                {creatorStats.niche.map((n: string) => (
+                  <span key={n} style={{ padding: "5px 12px", border: "1px solid rgba(201,169,110,0.25)", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase" }}>{n}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {!isBrand && creatorStats !== null && !dismissedCompletion && (() => {
           let score = 0;
           if (profile?.avatar_url) score += 25;
