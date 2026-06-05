@@ -107,31 +107,31 @@ function TermsContent({ body, bullet, sec, caps }: StyleProps) {
   return (
     <>
       <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.3)", marginBottom: "32px" }}>Effective Date: June 3, 2026 · Version 1.0</p>
-      <p style={body}>These Terms of Service ("Terms") govern your access to and use of the Pearup platform. By creating an account or using the Platform in any way, you agree to be legally bound by these Terms and our Privacy Policy. If you do not agree, you must immediately discontinue use.</p>
+      <p style={body}>These Terms of Service ("Terms") govern your access to and use of the PearUp platform. By creating an account or using the Platform in any way, you agree to be legally bound by these Terms and our Privacy Policy. If you do not agree, you must immediately discontinue use.</p>
 
       <p style={sec}>1. Definitions</p>
-      <p style={bullet}>— <strong style={{ color: "rgba(255,255,255,0.8)" }}>Platform</strong> — the Pearup website, application, software, tools, and all related services.</p>
+      <p style={bullet}>— <strong style={{ color: "rgba(255,255,255,0.8)" }}>Platform</strong> — the PearUp website, application, software, tools, and all related services.</p>
       <p style={bullet}>— <strong style={{ color: "rgba(255,255,255,0.8)" }}>Brand</strong> — any company or individual registered to seek content creation or influencer marketing services.</p>
       <p style={bullet}>— <strong style={{ color: "rgba(255,255,255,0.8)" }}>Creator</strong> — any individual registered to offer content creation or influencer marketing services.</p>
       <p style={bullet}>— <strong style={{ color: "rgba(255,255,255,0.8)" }}>Deal</strong> — an agreed campaign or service arrangement between a Brand and a Creator initiated through the Platform.</p>
-      <p style={bullet}>— <strong style={{ color: "rgba(255,255,255,0.8)" }}>Platform Fee</strong> — the 12% commission charged by Pearup on each completed transaction.</p>
+      <p style={bullet}>— <strong style={{ color: "rgba(255,255,255,0.8)" }}>Platform Fee</strong> — the 12% commission charged by PearUp on each completed transaction.</p>
 
       <p style={sec}>2. Eligibility</p>
       <p style={body}>You must be at least 18 years of age, have legal capacity to enter binding contracts, and provide accurate registration information. Minors between 13–17 may browse with verified parental consent but may not send or receive payments or enter into Deals.</p>
 
-      <p style={sec}>3. Pearup's Role</p>
-      <p style={body}>Pearup is a technology marketplace and intermediary only. Pearup does not employ, supervise, or represent any Creator or Brand. Pearup is not a staffing agency, talent agency, or advertising agency. The relationship between a Brand and a Creator is a direct, independent contractual relationship. Pearup does not guarantee the quality, legality, accuracy, results, or commercial success of any Deal, Content, product, or service.</p>
+      <p style={sec}>3. PearUp's Role</p>
+      <p style={body}>PearUp is a technology marketplace and intermediary only. PearUp does not employ, supervise, or represent any Creator or Brand. PearUp is not a staffing agency, talent agency, or advertising agency. The relationship between a Brand and a Creator is a direct, independent contractual relationship. PearUp does not guarantee the quality, legality, accuracy, results, or commercial success of any Deal, Content, product, or service.</p>
 
       <p style={sec}>4. Creator Obligations</p>
       <p style={body}>By registering as a Creator, you represent that all information provided — including follower count, engagement rate, niche, and platforms — is accurate. Misrepresentation is grounds for immediate account termination. As a Creator you agree to:</p>
       <p style={bullet}>— Deliver all agreed Content within the timeframes specified in each Deal.</p>
       <p style={bullet}>— Communicate promptly if you are unable to meet a deadline or fulfill any obligation.</p>
       <p style={bullet}>— Post only Content you own or have full rights to, including any music, images, or third-party materials.</p>
-      <p style={bullet}>— Not accept payment outside the Platform for any Deal originated through Pearup.</p>
-      <p style={body}>Creators are solely responsible for complying with FTC Endorsement Guidelines. You must clearly disclose any material connection to a Brand using language such as "#ad," "#sponsored," or "Paid partnership with [Brand]." Pearup is not liable for any Creator's failure to comply with disclosure requirements.</p>
+      <p style={bullet}>— Not accept payment outside the Platform for any Deal originated through PearUp.</p>
+      <p style={body}>Creators are solely responsible for complying with FTC Endorsement Guidelines. You must clearly disclose any material connection to a Brand using language such as "#ad," "#sponsored," or "Paid partnership with [Brand]." PearUp is not liable for any Creator's failure to comply with disclosure requirements.</p>
 
       <p style={sec}>5. Independent Contractor Status</p>
-      <p style={body}>Creators are independent contractors — not employees, agents, or partners of Pearup. Creators are solely responsible for all taxes on income earned through the Platform. Creators who earn $600 or more in a calendar year may receive a Form 1099-NEC and must provide valid tax identification upon request.</p>
+      <p style={body}>Creators are independent contractors — not employees, agents, or partners of PearUp. Creators are solely responsible for all taxes on income earned through the Platform. Creators who earn $600 or more in a calendar year may receive a Form 1099-NEC and must provide valid tax identification upon request.</p>
 
       <p style={sec}>6. Brand Obligations</p>
       <p style={body}>By registering as a Brand, you represent that all information provided is accurate and truthful. As a Brand you agree to:</p>
@@ -142,7 +142,7 @@ function TermsContent({ body, bullet, sec, caps }: StyleProps) {
       <p style={body}>Brands are solely responsible for all consumer complaints, product defects, service failures, shipping issues, warranties, fulfillment obligations, and any customer-facing legal obligations.</p>
 
       <p style={sec}>7. Platform Fee & Payments</p>
-      <p style={body}>Pearup charges a 12% platform fee on every Deal completed through the Platform. This fee is automatically deducted at payment release and is non-negotiable and non-refundable under any circumstances. All payments are processed through Stripe. All payments related to any Deal initiated on Pearup must be processed exclusively through Pearup. Circumventing the Platform to avoid the fee is a material breach of these Terms.</p>
+      <p style={body}>PearUp charges a 12% platform fee on every Deal completed through the Platform. This fee is automatically deducted at payment release and is non-negotiable and non-refundable under any circumstances. All payments are processed through Stripe. All payments related to any Deal initiated on PearUp must be processed exclusively through PearUp. Circumventing the Platform to avoid the fee is a material breach of these Terms.</p>
 
       <p style={sec}>8. Content Delivery & Payment Release</p>
       <p style={body}>Brands must fund the Deal in full before the Deal is marked active. Once a Creator submits the completed Content or post link, the Brand has <strong style={{ color: "white" }}>48 hours</strong> to file a dispute. If no dispute is filed within 48 hours, payment is automatically released less the 12% fee. Creator payouts are processed within 3–5 business days after the review period closes.</p>
@@ -162,13 +162,13 @@ function TermsContent({ body, bullet, sec, caps }: StyleProps) {
       <p style={caps}>THE PLATFORM IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. PEARUP'S TOTAL LIABILITY TO ANY USER FOR ANY CLAIM SHALL NOT EXCEED THE TOTAL PLATFORM FEES EARNED FROM THAT USER'S DEALS IN THE 30 DAYS PRECEDING THE CLAIM. PEARUP IS NOT LIABLE FOR INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES OF ANY KIND.</p>
 
       <p style={sec}>12. Indemnification</p>
-      <p style={body}>You agree to defend, indemnify, and hold harmless Pearup and its founders, officers, directors, employees, agents, and licensors from any claims, damages, losses, liabilities, costs, and expenses arising out of your use of the Platform, your Content, your products or services, your advertising claims, or your violation of these Terms or applicable law.</p>
+      <p style={body}>You agree to defend, indemnify, and hold harmless PearUp and its founders, officers, directors, employees, agents, and licensors from any claims, damages, losses, liabilities, costs, and expenses arising out of your use of the Platform, your Content, your products or services, your advertising claims, or your violation of these Terms or applicable law.</p>
 
       <p style={sec}>13. Dispute Resolution</p>
       <p style={caps}>ANY DISPUTE THAT CANNOT BE RESOLVED INFORMALLY SHALL BE RESOLVED EXCLUSIVELY THROUGH BINDING INDIVIDUAL ARBITRATION CONDUCTED BY THE AMERICAN ARBITRATION ASSOCIATION (AAA) UNDER ITS CONSUMER ARBITRATION RULES, IN BOSTON, MASSACHUSETTS. YOU WAIVE YOUR RIGHT TO PARTICIPATE IN ANY CLASS ACTION LAWSUIT OR JURY TRIAL AGAINST PEARUP.</p>
 
       <p style={sec}>14. Governing Law & Contact</p>
-      <p style={body}>These Terms are governed by the laws of the Commonwealth of Massachusetts. For questions or legal notices: <span style={{ color: "#c9a96e" }}>legal@pearup.com</span></p>
+      <p style={body}>These Terms are governed by the laws of the Commonwealth of Massachusetts. For questions or legal notices: <span style={{ color: "#c9a96e" }}>lulaarcila10@gmail.com</span></p>
       <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.25)", marginTop: "32px", fontStyle: "italic" }}>BY CREATING AN ACCOUNT OR USING THE PLATFORM, YOU AGREE TO BE LEGALLY BOUND BY THESE TERMS OF SERVICE.</p>
     </>
   );
@@ -181,7 +181,7 @@ function PrivacyContent({ body, bullet, sec, caps }: StyleProps) {
       <p style={body}>This Privacy Policy describes how PearUp, LLC. collects, uses, discloses, retains, and protects personal information about individuals who access or use the PearUp platform. By creating an account or using the Platform, you acknowledge that you have read and understood this Policy, which is incorporated by reference into PearUp's Terms of Service.</p>
 
       <p style={sec}>1. Who We Are & Contact</p>
-      <p style={body}>PearUp, LLC. is the data controller responsible for personal information processed through the Platform. Privacy inquiries, data subject requests, and legal notices: <span style={{ color: "#c9a96e" }}>legal@pearup.com</span>. We respond within 45 days of receipt.</p>
+      <p style={body}>PearUp, LLC. is the data controller responsible for personal information processed through the Platform. Privacy inquiries, data subject requests, and legal notices: <span style={{ color: "#c9a96e" }}>lulaarcila10@gmail.com</span>. We respond within 45 days of receipt.</p>
 
       <p style={sec}>2. Information We Collect</p>
       <p style={body}><strong style={{ color: "rgba(255,255,255,0.8)" }}>Account & Registration</strong> — Full name, email, phone number, physical address, company name (Brands), social media handles and profile URLs, profile photo and biography, niche and content categories (Creators), date of birth, and government-issued identification where required.</p>
@@ -227,13 +227,13 @@ function PrivacyContent({ body, bullet, sec, caps }: StyleProps) {
       <p style={sec}>10. Your Rights</p>
       <p style={body}><strong style={{ color: "rgba(255,255,255,0.8)" }}>California (CCPA/CPRA)</strong> — Right to Know, Right to Delete, Right to Correct, Right to Opt Out of Sale or Sharing, Right to Limit Use of Sensitive Personal Information, and Right to Non-Discrimination. We respond to verifiable consumer requests within 45 days.</p>
       <p style={body}><strong style={{ color: "rgba(255,255,255,0.8)" }}>EEA / UK / Switzerland (GDPR)</strong> — Right of Access, Right to Rectification, Right to Erasure, Right to Restriction, Right to Data Portability, Right to Object, and Rights Related to Automated Decision-Making. We respond within one month.</p>
-      <p style={body}><strong style={{ color: "rgba(255,255,255,0.8)" }}>Other U.S. States</strong> — Residents of Virginia, Colorado, Connecticut, Texas, and other states with comprehensive privacy laws may have additional rights including the right to access, correct, delete, and opt out of targeted advertising. Contact us at legal@pearup.com.</p>
+      <p style={body}><strong style={{ color: "rgba(255,255,255,0.8)" }}>Other U.S. States</strong> — Residents of Virginia, Colorado, Connecticut, Texas, and other states with comprehensive privacy laws may have additional rights including the right to access, correct, delete, and opt out of targeted advertising. Contact us at lulaarcila10@gmail.com.</p>
 
       <p style={sec}>11. Children's Privacy</p>
-      <p style={body}>The Platform is not intended for individuals under 13. We do not knowingly collect personal information from children under 13. Minors between 13–17 may only browse with verified parental consent and may not send or receive payments, enter into Deals, or post Content. Contact legal@pearup.com immediately if you believe we have collected information from a child under 13.</p>
+      <p style={body}>The Platform is not intended for individuals under 13. We do not knowingly collect personal information from children under 13. Minors between 13–17 may only browse with verified parental consent and may not send or receive payments, enter into Deals, or post Content. Contact lulaarcila10@gmail.com immediately if you believe we have collected information from a child under 13.</p>
 
       <p style={sec}>12. Marketing Communications</p>
-      <p style={body}>You may opt out of marketing emails at any time by clicking "unsubscribe" in any marketing email, updating your account settings, or contacting us at legal@pearup.com. Transactional and service-related communications will continue regardless of opt-out status.</p>
+      <p style={body}>You may opt out of marketing emails at any time by clicking "unsubscribe" in any marketing email, updating your account settings, or contacting us at lulaarcila10@gmail.com. Transactional and service-related communications will continue regardless of opt-out status.</p>
 
       <p style={sec}>13. Dispute Resolution & Arbitration</p>
       <p style={caps}>ANY DISPUTE ARISING FROM OR RELATING TO THIS PRIVACY POLICY SHALL BE RESOLVED THROUGH THE BINDING ARBITRATION PROCESS SET FORTH IN PEARUP'S TERMS OF SERVICE. YOU WAIVE THE RIGHT TO A JURY TRIAL AND THE RIGHT TO PARTICIPATE IN A CLASS ACTION LAWSUIT WITH RESPECT TO ANY PRIVACY-RELATED DISPUTE.</p>
@@ -251,7 +251,7 @@ function BrandContent({ body, bullet, sec, caps }: StyleProps) {
       <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.3)", marginBottom: "32px" }}>Version 1.0 · Effective Date: June 3, 2026</p>
       <p style={{ ...body, fontStyle: "italic", color: "rgba(255,255,255,0.4)" }}>By registering as a Brand or using the Platform, you agree to be legally bound by this Agreement.</p>
 
-      <p style={sec}>Section 1. Pearup's Role</p>
+      <p style={sec}>Section 1. PearUp's Role</p>
       <p style={body}>PearUp is a technology marketplace and intermediary only. PearUp does not employ, supervise, direct, control, manage, endorse, or represent any Creator or Brand. PearUp is not an advertiser, marketing agency, talent agency, employer, distributor, publisher, or fiduciary of any kind. PearUp does not pre-screen, review, approve, verify, or monitor any Brand's products, services, advertising claims, or campaign materials. The relationship between a Brand and a Creator is a direct, independent contractual relationship.</p>
 
       <p style={sec}>Section 2. Brand Representations & Warranties</p>
@@ -303,7 +303,7 @@ function BrandContent({ body, bullet, sec, caps }: StyleProps) {
       <p style={caps}>ANY DISPUTE THAT CANNOT BE RESOLVED INFORMALLY SHALL BE RESOLVED EXCLUSIVELY THROUGH FINAL, BINDING INDIVIDUAL ARBITRATION ADMINISTERED BY THE AAA UNDER ITS COMMERCIAL ARBITRATION RULES IN BOSTON, MASSACHUSETTS. BRAND EXPRESSLY AND IRREVOCABLY WAIVES ANY RIGHT TO CLASS ACTION LAWSUIT, CLASS-WIDE ARBITRATION, MASS ARBITRATION, OR ANY OTHER REPRESENTATIVE PROCEEDING AGAINST PEARUP. BRAND ALSO WAIVES ANY RIGHT TO A JURY TRIAL.</p>
 
       <p style={sec}>Section 10. General Provisions</p>
-      <p style={body}>This Agreement, together with PearUp's Terms of Service and Privacy Policy, constitutes the entire agreement between Brand and PearUp. PearUp may modify this Agreement at any time with 14 days' notice. Brand's continued use of the Platform after the effective date of any amendment constitutes binding acceptance. Brand may not assign or transfer any rights or obligations under this Agreement without PearUp's prior written consent. Clicking "I Agree," completing registration, or otherwise affirmatively accepting this Agreement constitutes Brand's legally binding signature pursuant to the E-SIGN Act. For questions, legal notices, or concerns: <span style={{ color: "#c9a96e" }}>legal@pearup.com</span></p>
+      <p style={body}>This Agreement, together with PearUp's Terms of Service and Privacy Policy, constitutes the entire agreement between Brand and PearUp. PearUp may modify this Agreement at any time with 14 days' notice. Brand's continued use of the Platform after the effective date of any amendment constitutes binding acceptance. Brand may not assign or transfer any rights or obligations under this Agreement without PearUp's prior written consent. Clicking "I Agree," completing registration, or otherwise affirmatively accepting this Agreement constitutes Brand's legally binding signature pursuant to the E-SIGN Act. For questions, legal notices, or concerns: <span style={{ color: "#c9a96e" }}>lulaarcila10@gmail.com</span></p>
       <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.25)", marginTop: "32px", fontStyle: "italic" }}>BY REGISTERING AS A BRAND, CLICKING "I AGREE," OR USING THE PLATFORM IN ANY WAY, BRAND ACKNOWLEDGES THAT BRAND HAS READ THIS AGREEMENT IN FULL AND AGREES TO BE LEGALLY BOUND BY ALL OF ITS PROVISIONS.</p>
     </>
   );
@@ -315,7 +315,7 @@ function CreatorContent({ body, bullet, sec, caps }: StyleProps) {
       <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.3)", marginBottom: "32px" }}>Effective Date: June 3, 2026 · Version 1.0</p>
       <p style={{ ...body, fontStyle: "italic", color: "rgba(255,255,255,0.4)" }}>By clicking "I Agree," completing registration, or using the Platform in any capacity, you acknowledge that you have read, understood, and agree to be legally bound by this Agreement.</p>
 
-      <p style={sec}>Section 1. Pearup's Role & Independent Contractor Status</p>
+      <p style={sec}>Section 1. PearUp's Role & Independent Contractor Status</p>
       <p style={body}>PearUp is a technology marketplace and intermediary only. PearUp does not employ, supervise, direct, control, manage, endorse, or represent any Creator or Brand. PearUp is not a staffing agency, talent agency, advertising agency, marketing firm, publisher, media company, joint venture partner, or fiduciary of any kind. PearUp does not pre-screen, review, approve, verify, or monitor any Content, Campaign, or Creator conduct.</p>
       <p style={body}>Creator is an independent contractor. Nothing in this Agreement creates any employment relationship, agency relationship, partnership, joint venture, franchise, or fiduciary relationship between PearUp and Creator. Creator has no authority, express or implied, to make any representation, warranty, or commitment on behalf of PearUp.</p>
       <p style={body}>As an independent contractor, Creator is solely and exclusively responsible for: all federal, state, local, and international income taxes, self-employment taxes, payroll taxes, sales taxes, and any other taxes arising from Creator's income or activities; obtaining and maintaining all business licenses, permits, registrations, and professional certifications required by applicable law; obtaining and maintaining all necessary insurance coverage; compliance with all applicable labor, employment, immigration, and worker classification laws; all regulatory compliance obligations, including advertising disclosure requirements; and all equipment, software, subscriptions, and operational costs incurred in performing Services.</p>
@@ -386,7 +386,7 @@ function CreatorContent({ body, bullet, sec, caps }: StyleProps) {
       <p style={caps}>ANY DISPUTE THAT CANNOT BE RESOLVED INFORMALLY SHALL BE RESOLVED EXCLUSIVELY THROUGH FINAL, BINDING INDIVIDUAL ARBITRATION ADMINISTERED BY THE AAA UNDER ITS CONSUMER ARBITRATION RULES IN BOSTON, MASSACHUSETTS. CREATOR EXPRESSLY AND IRREVOCABLY WAIVES ANY RIGHT TO CLASS ACTION LAWSUIT, CLASS-WIDE ARBITRATION, MASS ARBITRATION, OR ANY OTHER REPRESENTATIVE PROCEEDING AGAINST PEARUP. CREATOR ALSO WAIVES ANY RIGHT TO A JURY TRIAL. The prevailing party in any arbitration shall be entitled to recover reasonable attorneys' fees and costs.</p>
 
       <p style={sec}>Section 12. General Provisions</p>
-      <p style={body}>This Agreement, together with PearUp's Terms of Service and Privacy Policy, constitutes the entire agreement between Creator and PearUp. PearUp may modify this Agreement at any time with 14 days' notice. Creator's continued use of the Platform after the effective date of any amendment constitutes binding acceptance. Creator may not assign or transfer any rights or obligations under this Agreement without PearUp's prior written consent. Clicking "I Agree," completing registration, or otherwise affirmatively accepting this Agreement constitutes Creator's legally binding signature pursuant to the E-SIGN Act. For questions, legal notices, or concerns: <span style={{ color: "#c9a96e" }}>legal@pearup.com</span></p>
+      <p style={body}>This Agreement, together with PearUp's Terms of Service and Privacy Policy, constitutes the entire agreement between Creator and PearUp. PearUp may modify this Agreement at any time with 14 days' notice. Creator's continued use of the Platform after the effective date of any amendment constitutes binding acceptance. Creator may not assign or transfer any rights or obligations under this Agreement without PearUp's prior written consent. Clicking "I Agree," completing registration, or otherwise affirmatively accepting this Agreement constitutes Creator's legally binding signature pursuant to the E-SIGN Act. For questions, legal notices, or concerns: <span style={{ color: "#c9a96e" }}>lulaarcila10@gmail.com</span></p>
       <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.25)", marginTop: "32px", fontStyle: "italic" }}>BY REGISTERING AS A CREATOR, CLICKING "I AGREE," OR USING THE PLATFORM IN ANY WAY, CREATOR ACKNOWLEDGES THAT CREATOR HAS READ THIS AGREEMENT IN FULL AND AGREES TO BE LEGALLY BOUND BY ALL OF ITS PROVISIONS, INCLUDING THE BINDING ARBITRATION CLAUSE, CLASS ACTION WAIVER, JURY TRIAL WAIVER, LIMITATION OF LIABILITY, AND INDEMNIFICATION OBLIGATIONS.</p>
     </>
   );

@@ -46,7 +46,8 @@ function displayRate(min: number): string {
   if (min >= 5000) return "$5,000 – $15,000";
   if (min >= 1000) return "$1,000 – $5,000";
   if (min >= 500) return "$500 – $1,000";
-  return "$100 – $500";
+  if (min >= 100) return "$100 – $500";
+  return "$0 – $100";
 }
 
 export default function ProfilePage() {
@@ -76,6 +77,7 @@ export default function ProfilePage() {
   const [viewerId, setViewerId] = useState<string | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioImage[]>([]);
   const [showFeeInfo, setShowFeeInfo] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -273,7 +275,7 @@ export default function ProfilePage() {
             <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "3px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: "12px" }}>Their Vibe</p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 200px)", gap: "2px", justifyContent: "center" }}>
               {portfolio.map(pic => (
-                <div key={pic.id} style={{ width: "200px", height: "200px", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.04)" }}>
+                <div key={pic.id} onClick={() => setLightboxUrl(pic.url)} style={{ width: "200px", height: "200px", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.04)", cursor: "zoom-in" }}>
                   <img src={pic.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                 </div>
               ))}
@@ -299,12 +301,12 @@ export default function ProfilePage() {
                   style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", background: "none", border: "none", padding: "14px 0", marginTop: "4px", cursor: "pointer" }}
                 >
                   <span style={{ color: "#c9a96e", fontSize: "12px" }}>ⓘ</span>
-                  <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>Pearup takes 12% commission</span>
+                  <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>PearUp takes 12% commission</span>
                   <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px", transform: showFeeInfo ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s ease" }}>▾</span>
                 </button>
                 {showFeeInfo && (
                   <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.45)", lineHeight: "1.8", margin: "0 0 16px", textAlign: "center" }}>
-                    Pearup charges a 12% platform fee on every completed deal. This is automatically deducted from the agreed budget before the creator receives payment. Both parties agree to this fee by using the platform.
+                    PearUp charges a 12% platform fee on every completed deal. This is automatically deducted from the agreed budget as the creator receives payment. Both parties agree to this fee by using the platform.
                   </p>
                 )}
               </div>
@@ -367,8 +369,8 @@ export default function ProfilePage() {
 
               <p style={{ fontFamily: "Georgia, serif", fontSize: "11px", color: "rgba(255,255,255,0.3)", margin: "0", lineHeight: "1.7" }}>
                 {canSendDeal
-                  ? "This proposal is binding once accepted. All terms above are part of the deal agreement per Pearup's Terms of Service. A 12% platform fee applies."
-                  : "FTC notice: You must disclose this as a paid partnership (#ad, #sponsored, or 'Paid partnership'). All deals must stay on Pearup."}
+                  ? "This proposal is binding once accepted. All terms above are part of the deal agreement per PearUp's Terms of Service. A 12% platform fee applies."
+                  : "FTC notice: You must disclose this as a paid partnership (#ad, #sponsored, or 'Paid partnership'). All deals must stay on PearUp."}
               </p>
 
               <div style={{ display: "flex", gap: "12px" }}>
@@ -390,6 +392,13 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {lightboxUrl && (
+        <div onClick={() => setLightboxUrl(null)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.92)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", cursor: "zoom-out" }}>
+          <img src={lightboxUrl} alt="" style={{ maxWidth: "92vw", maxHeight: "88vh", objectFit: "contain", boxShadow: "0 0 60px rgba(0,0,0,0.8)" }} />
+          <button onClick={() => setLightboxUrl(null)} style={{ position: "absolute", top: "20px", right: "24px", background: "none", border: "none", color: "rgba(255,255,255,0.6)", fontSize: "28px", cursor: "pointer", lineHeight: "1" }}>×</button>
+        </div>
+      )}
     </div>
   );
 }

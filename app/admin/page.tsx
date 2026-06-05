@@ -44,7 +44,8 @@ function displayRate(n: number): string {
   if (n >= 5000) return "$5,000 – $15,000";
   if (n >= 1000) return "$1,000 – $5,000";
   if (n >= 500) return "$500 – $1,000";
-  return "$100 – $500";
+  if (n >= 100) return "$100 – $500";
+  return "$0 – $100";
 }
 
 function Row({ label, value }: { label: string; value: string }) {

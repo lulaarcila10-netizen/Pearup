@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 const NICHES = ["Fashion", "Beauty", "Jewelry", "Skincare", "Fitness", "Travel", "Food", "Tech", "Gadgets", "Lifestyle"];
 const PLATFORMS = ["Instagram", "TikTok", "YouTube", "Pinterest"];
 const RATE_RANGES = [
+  { label: "$0 – $100", min: 1, max: 100 },
   { label: "$100 – $500", min: 100, max: 500 },
   { label: "$500 – $1,000", min: 500, max: 1000 },
   { label: "$1,000 – $5,000", min: 1000, max: 5000 },

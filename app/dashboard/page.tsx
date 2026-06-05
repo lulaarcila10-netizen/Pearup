@@ -86,7 +86,8 @@ function displayRate(min: number): string {
   if (min >= 5000) return "$5,000 – $15,000";
   if (min >= 1000) return "$1,000 – $5,000";
   if (min >= 500) return "$500 – $1,000";
-  return "$100 – $500";
+  if (min >= 100) return "$100 – $500";
+  return "$0 – $100";
 }
 
 function displayBudget(min: number): string {
@@ -131,6 +132,7 @@ export default function Dashboard() {
   const [portfolio, setPortfolio] = useState<{ id: string; url: string }[]>([]);
   const [uploadingPortfolio, setUploadingPortfolio] = useState(false);
   const [brandName, setBrandName] = useState<string | null>(null);
+  const [brandDescription, setBrandDescription] = useState<string | null>(null);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [dealsLoading, setDealsLoading] = useState(false);
   const [activeConversation, setActiveConversation] = useState<Deal | null>(null);
@@ -162,6 +164,7 @@ export default function Dashboard() {
   const [sendingSupport, setSendingSupport] = useState(false);
   const [supportUnread, setSupportUnread] = useState(0);
   const supportBottomRef = useRef<HTMLDivElement | null>(null);
+  const [pendingBadge, setPendingBadge] = useState(0);
 
   useEffect(() => {
     async function loadProfile() {
@@ -191,8 +194,21 @@ export default function Dashboard() {
       if (portfolioData) setPortfolio(portfolioData);
 
       if (data.user_type === "brand") {
-        const { data: bp } = await supabase.from("brand_profiles").select("brand_name").eq("id", user.id).single();
-        if (bp) setBrandName(bp.brand_name);
+        const { data: bp } = await supabase.from("brand_profiles").select("brand_name, description").eq("id", user.id).single();
+        if (bp) { setBrandName(bp.brand_name); setBrandDescription(bp.description || null); }
+      }
+
+      // Eagerly load pending badge count and payout method so they show before deals tab is visited
+      const { data: pendingData } = await supabase
+        .from("deals")
+        .select("id, initiated_by")
+        .or(`brand_id.eq.${user.id},creator_id.eq.${user.id}`)
+        .eq("status", "pending");
+      setPendingBadge((pendingData || []).filter(d => d.initiated_by !== null && d.initiated_by !== user.id).length);
+
+      if (data.user_type === "creator") {
+        const { data: cpData } = await supabase.from("creator_profiles").select("payout_method").eq("id", user.id).single();
+        setHasPayoutMethod(!!(cpData?.payout_method));
       }
 
       setDiscoverLoading(true);
@@ -686,7 +702,7 @@ export default function Dashboard() {
               { label: "Niche", value: activeFilter || "", onChange: (v: string) => filterByNiche(v || null), options: NICHES },
               { label: "Platform", value: activePlatform || "", onChange: (v: string) => filterByPlatform(v || null), options: ["Instagram", "TikTok", "YouTube", "Pinterest"] },
               { label: "Followers", value: activeFollower?.toString() || "", onChange: (v: string) => filterByFollower(v ? Number(v) : null), options: [{ label: "1K – 10K", value: "1000" }, { label: "10K – 50K", value: "10000" }, { label: "50K – 100K", value: "50000" }, { label: "100K – 500K", value: "100000" }, { label: "500K+", value: "500000" }] },
-              { label: "Rate / Post", value: activeRate?.toString() || "", onChange: (v: string) => filterByRate(v ? Number(v) : null), options: [{ label: "$100 – $500", value: "100" }, { label: "$500 – $1K", value: "500" }, { label: "$1K – $5K", value: "1000" }, { label: "$5K – $15K", value: "5000" }, { label: "$15K+", value: "15000" }] },
+              { label: "Rate / Post", value: activeRate?.toString() || "", onChange: (v: string) => filterByRate(v ? Number(v) : null), options: [{ label: "$0 – $100", value: "1" }, { label: "$100 – $500", value: "100" }, { label: "$500 – $1K", value: "500" }, { label: "$1K – $5K", value: "1000" }, { label: "$5K – $15K", value: "5000" }, { label: "$15K+", value: "15000" }] },
             ].map(({ label, value, onChange, options }) => (
               <select
                 key={label}
@@ -750,7 +766,7 @@ export default function Dashboard() {
           filteredBrands.length === 0 ? (
             <div style={{ border: "1px solid rgba(201,169,110,0.15)", padding: "48px 24px", textAlign: "center" }}>
               <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", color: "#c9a96e", textTransform: "uppercase", marginBottom: "12px" }}>Brands are on their way</p>
-              <p style={{ color: "rgba(255,255,255,0.6)", fontFamily: "Georgia, serif", fontSize: "14px", lineHeight: "1.8", marginBottom: "24px" }}>We'll notify you as soon as a brand matching your niche joins Pearup.</p>
+              <p style={{ color: "rgba(255,255,255,0.6)", fontFamily: "Georgia, serif", fontSize: "14px", lineHeight: "1.8", marginBottom: "24px" }}>We'll notify you as soon as a brand matching your niche joins PearUp.</p>
               <button onClick={() => router.push("/edit-profile/creator")} style={{ background: "none", border: "1px solid rgba(201,169,110,0.4)", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", padding: "10px 20px", cursor: "pointer" }}>Update My Niche Preferences</button>
             </div>
           ) : (
@@ -807,10 +823,10 @@ export default function Dashboard() {
         {showPaymentInfo && (
           <div style={{ marginTop: "-16px", marginBottom: "24px", padding: "16px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
             {[
-              { step: "01", text: "Brand pays the agreed amount through Pearup. Funds are held — creator receives nothing yet." },
+              { step: "01", text: "Brand pays the agreed amount through PearUp. Funds are held — creator receives nothing yet." },
               { step: "02", text: "Creator delivers the content and submits the post link inside the deal." },
               { step: "03", text: "Brand has 48 hours to dispute. No dispute = payment releases automatically." },
-              { step: "04", text: "Pearup deducts its 12% fee. The remaining balance is sent to the creator within 3–5 business days." },
+              { step: "04", text: "PearUp deducts its 12% fee. The remaining balance is sent to the creator within 3–5 business days." },
             ].map(({ step, text }) => (
               <div key={step} style={{ display: "flex", gap: "16px", marginBottom: "14px", alignItems: "flex-start" }}>
                 <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#c9a96e", flexShrink: 0, paddingTop: "3px" }}>{step}</span>
@@ -901,7 +917,7 @@ export default function Dashboard() {
                     {deal.payment_status === "paid" && !isBrand && hasPayoutMethod === false && (
                       <div style={{ border: "1px solid rgba(255,149,0,0.4)", backgroundColor: "rgba(255,149,0,0.05)", padding: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
                         <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#ff9500", textTransform: "uppercase", margin: "0" }}>⚠ Add Your Payout Method</p>
-                        <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.55)", margin: "0", lineHeight: "1.6" }}>So Pearup knows where to send your money once the brand approves your post. Takes 10 seconds.</p>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.55)", margin: "0", lineHeight: "1.6" }}>So PearUp knows where to send your money once the brand approves your post. Takes 10 seconds.</p>
                         <button
                           onClick={() => router.push("/edit-profile/creator")}
                           style={{ backgroundColor: "#ff9500", color: "#0a0a0a", padding: "10px 20px", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer", alignSelf: "flex-start" }}
@@ -979,7 +995,7 @@ export default function Dashboard() {
                     {deal.payment_status === "paid" && !isBrand && deal.content_status === "disputed" && (
                       <div style={{ border: "1px solid rgba(255,100,100,0.3)", padding: "14px", backgroundColor: "rgba(255,100,100,0.04)" }}>
                         <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,100,100,0.8)", textTransform: "uppercase", margin: "0 0 4px" }}>Brand Opened a Dispute</p>
-                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.55)", margin: "0", lineHeight: "1.6" }}>Message the brand to resolve it, or contact Pearup support. If you repost, submit a new link below.</p>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.55)", margin: "0", lineHeight: "1.6" }}>Message the brand to resolve it, or contact PearUp support. If you repost, submit a new link below.</p>
                         <label style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", display: "block", marginTop: "12px", marginBottom: "6px" }}>Resubmit Post Link</label>
                         <input
                           type="url"
@@ -1022,7 +1038,7 @@ export default function Dashboard() {
                     {deal.payment_status === "paid" && isBrand && deal.content_status === "disputed" && (
                       <div style={{ border: "1px solid rgba(255,100,100,0.2)", padding: "12px 14px", backgroundColor: "rgba(255,100,100,0.04)" }}>
                         <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,100,100,0.8)", textTransform: "uppercase", margin: "0 0 4px" }}>Dispute Open</p>
-                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.45)", margin: "0" }}>Pearup has been notified. You can also message the creator directly to resolve it.</p>
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.45)", margin: "0" }}>PearUp has been notified. You can also message the creator directly to resolve it.</p>
                       </div>
                     )}
                     {deal.payment_status === "paid" && isBrand && !deal.post_link && (
@@ -1273,6 +1289,10 @@ export default function Dashboard() {
           Edit Profile
         </button>
 
+        {isBrand && brandDescription && (
+          <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "rgba(255,255,255,0.6)", lineHeight: "1.8", textAlign: "center", maxWidth: "360px", marginBottom: "24px" }}>{brandDescription}</p>
+        )}
+
         {!isBrand && creatorStats && (
           <div style={{ width: "100%", marginBottom: "28px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
             <div style={{ display: "flex", gap: "32px" }}>
@@ -1422,7 +1442,7 @@ export default function Dashboard() {
               {supportMessages.map(m => (
                 <div key={m.id} style={{ display: "flex", justifyContent: m.sender_type === "user" ? "flex-end" : "flex-start" }}>
                   <div style={{ maxWidth: "78%", padding: "10px 14px", backgroundColor: m.sender_type === "user" ? "#c9a96e" : "rgba(255,255,255,0.07)", borderRadius: m.sender_type === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px" }}>
-                    {m.sender_type === "admin" && <p style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", margin: "0 0 4px" }}>Pearup Team</p>}
+                    {m.sender_type === "admin" && <p style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", color: "#c9a96e", textTransform: "uppercase", margin: "0 0 4px" }}>PearUp Team</p>}
                     <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: m.sender_type === "user" ? "#0a0a0a" : "rgba(255,255,255,0.85)", margin: "0", lineHeight: "1.5" }}>{m.content}</p>
                   </div>
                 </div>
@@ -1452,7 +1472,9 @@ export default function Dashboard() {
       {activeTab === "profile" && ProfileTab()}
 
       {(() => {
-        const dealsBadge = deals.filter(d => d.status === "pending" && d.initiated_by !== null && d.initiated_by !== userId).length;
+        const dealsBadge = deals.length > 0
+          ? deals.filter(d => d.status === "pending" && d.initiated_by !== null && d.initiated_by !== userId).length
+          : pendingBadge;
         const messagesBadge = deals.filter(d => {
           if (d.status === "declined") return false;
           if (!d.last_message_at || d.last_message_sender_id === userId) return false;

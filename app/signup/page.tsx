@@ -33,7 +33,7 @@ export default function SignUp() {
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", textAlign: "center" }}>
-      <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "4px", color: "#c9a96e", textTransform: "uppercase", marginBottom: "16px" }}>Join Pearup</p>
+      <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "4px", color: "#c9a96e", textTransform: "uppercase", marginBottom: "16px" }}>Join PearUp</p>
       <h1 style={{ fontSize: "40px", color: "#c9a96e", margin: "0", letterSpacing: "8px", fontFamily: "Arial", fontWeight: "700" }}>PEARUP</h1>
       <div style={{ width: "30px", height: "2px", backgroundColor: "#c9a96e", margin: "20px auto 40px" }} />
 
@@ -70,14 +70,14 @@ export default function SignUp() {
         <label style={{ display: "flex", alignItems: "flex-start", gap: "12px", cursor: "pointer", textAlign: "left" }}>
           <input type="checkbox" checked={ageConfirmed} onChange={e => setAgeConfirmed(e.target.checked)} style={{ marginTop: "3px", accentColor: "#c9a96e", flexShrink: 0 }} />
           <span style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: "1.6" }}>
-            I confirm that I am 13 years of age or older and understand that Pearup charges a 12% platform fee on every completed deal.
+            I confirm that I am 13 years of age or older and understand that PearUp charges a 12% platform fee on every completed deal.
           </span>
         </label>
 
         <label style={{ display: "flex", alignItems: "flex-start", gap: "12px", cursor: "pointer", textAlign: "left" }}>
           <input type="checkbox" checked={termsConfirmed} onChange={e => setTermsConfirmed(e.target.checked)} style={{ marginTop: "3px", accentColor: "#c9a96e", flexShrink: 0 }} />
           <span style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: "1.6" }}>
-            I have read and agree to Pearup's{" "}
+            I have read and agree to PearUp's{" "}
             <Link href="/legal" target="_blank" style={{ color: "#c9a96e", textDecoration: "underline" }}>Terms, Privacy Policy, and Agreements</Link>
           </span>
         </label>

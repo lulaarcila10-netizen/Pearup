@@ -63,7 +63,7 @@ export default function Home() {
             <p style={{ fontFamily: "Arial", fontSize: "28px", fontWeight: "700", color: "#c9a96e", margin: "0 0 16px" }}>03</p>
             <p style={{ fontFamily: "Arial", fontSize: "13px", fontWeight: "700", letterSpacing: "2px", color: "white", textTransform: "uppercase", margin: "0 0 12px" }}>Close the Deal</p>
             <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "rgba(255,255,255,0.6)", lineHeight: "1.8", margin: "0" }}>
-              Message, agree on terms, and lock in a formal offer. Payment is handled securely inside Pearup. 🍐
+              Message, agree on terms, and lock in a formal offer. Payment is handled securely inside PearUp. 🍐
             </p>
           </div>
 
@@ -76,14 +76,14 @@ export default function Home() {
           Ready to make real deals happen?
         </p>
         <Link href="/signup" style={{ backgroundColor: "#c9a96e", color: "#0a0a0a", padding: "18px 48px", fontFamily: "Arial", fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", textDecoration: "none", fontWeight: "700" }}>
-          Join Pearup
+          Join PearUp
         </Link>
       </div>
 
       {/* Footer */}
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "32px 24px", textAlign: "center" }}>
         <Link href="/legal" style={{ fontFamily: "Arial", fontSize: "10px", color: "rgba(255,255,255,0.3)", letterSpacing: "2px", textTransform: "uppercase", textDecoration: "none", display: "inline-block", marginBottom: "12px" }}>Legal</Link>
-        <p style={{ fontFamily: "Arial", fontSize: "10px", color: "rgba(255,255,255,0.2)", margin: "0", letterSpacing: "1px" }}>© 2026 Pearup · Miami, FL</p>
+        <p style={{ fontFamily: "Arial", fontSize: "10px", color: "rgba(255,255,255,0.2)", margin: "0", letterSpacing: "1px" }}>© 2026 PearUp · Miami, FL</p>
       </div>
 
     </div>
