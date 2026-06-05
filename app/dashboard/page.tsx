@@ -149,7 +149,7 @@ export default function Dashboard() {
   const dealsLoadedRef = useRef(false);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const chatBottomRef = useRef<HTMLDivElement | null>(null);
-  const [creatorStats, setCreatorStats] = useState<{ bio: string | null; niche: string[]; follower_count: number | null; rate_per_post: number | null } | null>(null);
+  const [creatorStats, setCreatorStats] = useState<{ bio: string | null; niche: string[]; platforms: string[]; follower_count: number | null; rate_per_post: number | null } | null>(null);
   const [showSupport, setShowSupport] = useState(false);
   const [showPaymentInfo, setShowPaymentInfo] = useState(false);
   const [showPortfolioInfo, setShowPortfolioInfo] = useState(false);
@@ -353,23 +353,28 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (activeTab !== "profile" || !userId || profile?.user_type !== "creator" || creatorStats) return;
-    supabase.from("creator_profiles").select("bio, niche, follower_count, rate_per_post").eq("id", userId).single().then(({ data }) => {
-      setCreatorStats(data || { bio: null, niche: [], follower_count: null, rate_per_post: null });
+    supabase.from("creator_profiles").select("bio, niche, platforms, follower_count, rate_per_post").eq("id", userId).single().then(({ data }) => {
+      setCreatorStats(data || { bio: null, niche: [], platforms: [], follower_count: null, rate_per_post: null });
     });
   }, [activeTab, userId, profile?.user_type, creatorStats]);
 
   useEffect(() => {
     if (!creatorStats || isBrand || dismissedCompletion) return;
-    let score = 0;
-    if (profile?.avatar_url) score += 25;
-    if (creatorStats.bio) score += 25;
-    if (creatorStats.niche?.length > 0) score += 25;
-    if (creatorStats.follower_count) score += 25;
+    const checks = [
+      !!profile?.full_name,
+      !!creatorStats.bio,
+      (creatorStats.niche?.length ?? 0) > 0,
+      (creatorStats.platforms?.length ?? 0) > 0,
+      !!creatorStats.follower_count,
+      !!creatorStats.rate_per_post,
+      !!profile?.avatar_url,
+    ];
+    const score = Math.round((checks.filter(Boolean).length / 7) * 100);
     if (score === 100) {
       localStorage.setItem("pearup_profile_complete", "true");
       setDismissedCompletion(true);
     }
-  }, [creatorStats, profile?.avatar_url]);
+  }, [creatorStats, profile?.avatar_url, profile?.full_name]);
 
   async function handleDealAction(dealId: string, action: "accepted" | "declined") {
     await supabase.from("deals").update({ status: action }).eq("id", dealId);
@@ -1291,11 +1296,16 @@ export default function Dashboard() {
         )}
 
         {!isBrand && creatorStats !== null && !dismissedCompletion && (() => {
-          let score = 0;
-          if (profile?.avatar_url) score += 25;
-          if (creatorStats.bio) score += 25;
-          if (creatorStats.niche?.length > 0) score += 25;
-          if (creatorStats.follower_count) score += 25;
+          const checks = [
+            !!profile?.full_name,
+            !!creatorStats.bio,
+            (creatorStats.niche?.length ?? 0) > 0,
+            (creatorStats.platforms?.length ?? 0) > 0,
+            !!creatorStats.follower_count,
+            !!creatorStats.rate_per_post,
+            !!profile?.avatar_url,
+          ];
+          const score = Math.round((checks.filter(Boolean).length / 7) * 100);
           return (
             <div style={{ width: "100%", marginBottom: "32px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
