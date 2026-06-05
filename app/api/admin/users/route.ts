@@ -83,7 +83,7 @@ export async function GET(request: Request) {
     if (d.brand_id) dealCounts[d.brand_id] = (dealCounts[d.brand_id] || 0) + 1;
     if (d.creator_id) dealCounts[d.creator_id] = (dealCounts[d.creator_id] || 0) + 1;
     if (d.brand_id && validAmt) brandSpent[d.brand_id] = (brandSpent[d.brand_id] || 0) + validAmt;
-    if (d.creator_id && validAmt) creatorEarned[d.creator_id] = (creatorEarned[d.creator_id] || 0) + validAmt;
+    if (d.creator_id && validAmt) creatorEarned[d.creator_id] = (creatorEarned[d.creator_id] || 0) + validAmt * 0.88;
   });
 
   // Build completion percentages
