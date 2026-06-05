@@ -1293,6 +1293,10 @@ export default function Dashboard() {
           <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "rgba(255,255,255,0.6)", lineHeight: "1.8", textAlign: "center", maxWidth: "360px", marginBottom: "24px" }}>{brandDescription}</p>
         )}
 
+        {!isBrand && creatorStats?.bio && (
+          <p style={{ fontFamily: "Georgia, serif", fontSize: "14px", color: "rgba(255,255,255,0.6)", lineHeight: "1.8", textAlign: "center", maxWidth: "360px", marginBottom: "24px" }}>{creatorStats.bio}</p>
+        )}
+
         {!isBrand && creatorStats && (
           <div style={{ width: "100%", marginBottom: "28px", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
             <div style={{ display: "flex", gap: "32px" }}>
