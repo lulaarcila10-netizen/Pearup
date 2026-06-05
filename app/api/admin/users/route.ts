@@ -75,14 +75,15 @@ export async function GET(request: Request) {
   });
 
   const dealCounts: Record<string, number> = {};
-  const dealRevenue: Record<string, number> = {};
+  const brandSpent: Record<string, number> = {};   // keyed by brand_id — money going out
+  const creatorEarned: Record<string, number> = {}; // keyed by creator_id — money coming in
   dealData?.forEach((d: any) => {
-    [d.brand_id, d.creator_id].forEach((uid: string) => {
-      if (!uid) return;
-      dealCounts[uid] = (dealCounts[uid] || 0) + 1;
-      const amt = parseFloat((d.budget || "").replace(/[^0-9.]/g, ""));
-      if (!isNaN(amt) && amt > 0) dealRevenue[uid] = (dealRevenue[uid] || 0) + amt;
-    });
+    const amt = parseFloat((d.budget || "").replace(/[^0-9.]/g, ""));
+    const validAmt = !isNaN(amt) && amt > 0 ? amt : 0;
+    if (d.brand_id) dealCounts[d.brand_id] = (dealCounts[d.brand_id] || 0) + 1;
+    if (d.creator_id) dealCounts[d.creator_id] = (dealCounts[d.creator_id] || 0) + 1;
+    if (d.brand_id && validAmt) brandSpent[d.brand_id] = (brandSpent[d.brand_id] || 0) + validAmt;
+    if (d.creator_id && validAmt) creatorEarned[d.creator_id] = (creatorEarned[d.creator_id] || 0) + validAmt;
   });
 
   // Build completion percentages
@@ -101,7 +102,7 @@ export async function GET(request: Request) {
     user_type: p.user_type,
     avatar_url: p.avatar_url || null,
     deal_count: dealCounts[p.id] || 0,
-    total_revenue: dealRevenue[p.id] || 0,
+    total_revenue: p.user_type === "brand" ? (brandSpent[p.id] || 0) : (creatorEarned[p.id] || 0),
     completion: p.user_type === "admin" ? 100 : (completionMap[p.id] ?? 0),
     joined_at: joinedMap[p.id] || "",
   }));

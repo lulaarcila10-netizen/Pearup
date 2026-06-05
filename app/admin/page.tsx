@@ -345,8 +345,19 @@ export default function AdminPage() {
                 (!userSearch || (u.full_name || "").toLowerCase().includes(userSearch.toLowerCase()) || u.email.toLowerCase().includes(userSearch.toLowerCase()))
               );
               const count = (t: string) => users.filter(u => u.user_type === t).length;
+              const ghosts = users.filter(u => u.user_type !== "admin" && u.completion === 0).length;
+              const totalVolume = users.filter(u => u.user_type === "brand").reduce((s, u) => s + u.total_revenue, 0);
               return (
                 <div>
+                  {/* Summary row */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "20px" }}>
+                    <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", margin: "0" }}>{users.length} accounts</p>
+                    <div style={{ display: "flex", gap: "10px" }}>
+                      {ghosts > 0 && <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "1.5px", color: "rgba(255,149,0,0.8)", border: "1px solid rgba(255,149,0,0.3)", padding: "3px 10px", textTransform: "uppercase" }}>{ghosts} no profile</span>}
+                      {totalVolume > 0 && <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "1.5px", color: "#c9a96e", border: "1px solid rgba(201,169,110,0.3)", padding: "3px 10px", textTransform: "uppercase" }}>${totalVolume.toLocaleString()} total volume</span>}
+                    </div>
+                  </div>
+
                   {/* Filter chips — exactly like discover */}
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "28px" }}>
                     <button onClick={() => setUserTypeFilter(null)} style={chipStyle(!userTypeFilter)}>All ({users.length})</button>
@@ -372,7 +383,7 @@ export default function AdminPage() {
                               </div>
                               <div style={{ textAlign: "right" }}>
                                 <p style={{ fontFamily: "Arial", fontSize: "11px", color: "#c9a96e", margin: "0 0 2px" }}>{u.deal_count} deal{u.deal_count !== 1 ? "s" : ""}</p>
-                                <p style={{ fontFamily: "Arial", fontSize: "11px", color: "rgba(255,255,255,0.55)", margin: "0" }}>${u.total_revenue > 0 ? u.total_revenue.toLocaleString() : "0"} pipeline</p>
+                                <p style={{ fontFamily: "Arial", fontSize: "11px", color: "rgba(255,255,255,0.55)", margin: "0" }}>{u.total_revenue > 0 ? `$${u.total_revenue.toLocaleString()}` : "—"} {u.user_type === "brand" ? "spent" : u.user_type === "creator" ? "earned" : ""}</p>
                               </div>
                             </div>
                           </div>
