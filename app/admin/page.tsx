@@ -9,7 +9,7 @@ type Tab = "payouts" | "users" | "creators" | "brands" | "deals" | "messages" | 
 type User = { id: string; full_name: string | null; user_type: string };
 type Creator = { id: string; full_name: string | null; bio: string | null; niche: string[]; platforms: string[]; follower_count: number | null; rate_per_post: number | null };
 type Brand = { id: string; brand_name: string; description: string | null; industry: string[]; budget_min: number | null };
-type Deal = { id: string; brand_name: string; creator_name: string; message: string; budget: string | null; status: string; payment_status: string | null; content_status: string | null; payout_sent: boolean; post_link: string | null; created_at: string };
+type Deal = { id: string; brand_name: string; creator_name: string; pitcher_name: string; pitcher_type: string; receiver_name: string; receiver_type: string; message: string; budget: string | null; status: string; payment_status: string | null; content_status: string | null; payout_sent: boolean; post_link: string | null; created_at: string };
 type Payout = { id: string; creator_id: string; creator_name: string; brand_name: string; budget: string | null; payout_method: string | null; payout_sent: boolean };
 type Message = { id: string; deal_id: string; sender_id: string; sender_name: string; content: string; type: string; created_at: string };
 type SupportThread = { user_id: string; user_name: string; user_type: string; last_message: string; last_message_at: string };
@@ -389,7 +389,13 @@ export default function AdminPage() {
                     <div key={d.id} style={{ border: `1px solid ${declined ? "rgba(255,100,100,0.2)" : "rgba(255,255,255,0.08)"}`, padding: "18px 20px", backgroundColor: "rgba(255,255,255,0.02)", display: "flex", flexDirection: "column", gap: "14px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                         <div>
-                          <p style={{ fontFamily: "Arial", fontSize: "13px", fontWeight: "600", color: "white", margin: "0 0 3px" }}>{d.brand_name} → {d.creator_name}</p>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px" }}>
+                            <span style={{ fontFamily: "Arial", fontSize: "13px", fontWeight: "600", color: "white" }}>{d.pitcher_name}</span>
+                            <span style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "1px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", border: "1px solid rgba(255,255,255,0.15)", padding: "1px 6px" }}>{d.pitcher_type}</span>
+                            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px" }}>→</span>
+                            <span style={{ fontFamily: "Arial", fontSize: "13px", fontWeight: "600", color: "white" }}>{d.receiver_name}</span>
+                            <span style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "1px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", border: "1px solid rgba(255,255,255,0.15)", padding: "1px 6px" }}>{d.receiver_type}</span>
+                          </div>
                           <p style={{ fontFamily: "Arial", fontSize: "10px", color: "rgba(255,255,255,0.3)", margin: "0", letterSpacing: "1px" }}>{new Date(d.created_at).toLocaleDateString()}</p>
                         </div>
                         <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-end" }}>

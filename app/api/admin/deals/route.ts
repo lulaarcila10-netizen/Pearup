@@ -18,7 +18,7 @@ export async function GET(request: Request) {
 
   const { data, error } = await admin
     .from("deals")
-    .select("id, brand_id, creator_id, message, budget, status, payment_status, content_status, payout_sent, post_link, created_at")
+    .select("id, brand_id, creator_id, initiated_by, message, budget, status, payment_status, content_status, payout_sent, post_link, created_at")
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -37,17 +37,28 @@ export async function GET(request: Request) {
   const cMap: Record<string, string> = {};
   cd?.forEach((c: any) => { cMap[c.id] = c.full_name || "Creator"; });
 
-  return NextResponse.json(data.map(d => ({
-    id: d.id,
-    brand_name: bMap[d.brand_id] || "Unknown",
-    creator_name: cMap[d.creator_id] || "Unknown",
-    message: d.message,
-    budget: d.budget,
-    status: d.status,
-    payment_status: d.payment_status,
-    content_status: d.content_status,
-    payout_sent: d.payout_sent || false,
-    post_link: d.post_link,
-    created_at: d.created_at,
-  })));
+  return NextResponse.json(data.map(d => {
+    const brandName = bMap[d.brand_id] || "Unknown";
+    const creatorName = cMap[d.creator_id] || "Unknown";
+    const creatorInitiated = d.initiated_by === d.creator_id;
+    return {
+      id: d.id,
+      brand_id: d.brand_id,
+      creator_id: d.creator_id,
+      brand_name: brandName,
+      creator_name: creatorName,
+      pitcher_name: creatorInitiated ? creatorName : brandName,
+      pitcher_type: creatorInitiated ? "creator" : "brand",
+      receiver_name: creatorInitiated ? brandName : creatorName,
+      receiver_type: creatorInitiated ? "brand" : "creator",
+      message: d.message,
+      budget: d.budget,
+      status: d.status,
+      payment_status: d.payment_status,
+      content_status: d.content_status,
+      payout_sent: d.payout_sent || false,
+      post_link: d.post_link,
+      created_at: d.created_at,
+    };
+  }));
 }
