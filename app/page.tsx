@@ -82,7 +82,8 @@ export default function Home() {
 
       {/* Footer */}
       <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "32px 24px", textAlign: "center" }}>
-        <p style={{ fontFamily: "Arial", fontSize: "10px", color: "rgba(255,255,255,0.25)", margin: "0", letterSpacing: "1px" }}>© 2026 Pearup · Miami, FL</p>
+        <Link href="/legal" style={{ fontFamily: "Arial", fontSize: "10px", color: "rgba(255,255,255,0.3)", letterSpacing: "2px", textTransform: "uppercase", textDecoration: "none", display: "inline-block", marginBottom: "12px" }}>Legal</Link>
+        <p style={{ fontFamily: "Arial", fontSize: "10px", color: "rgba(255,255,255,0.2)", margin: "0", letterSpacing: "1px" }}>© 2026 Pearup · Miami, FL</p>
       </div>
 
     </div>

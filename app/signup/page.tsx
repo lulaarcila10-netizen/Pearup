@@ -77,10 +77,8 @@ export default function SignUp() {
         <label style={{ display: "flex", alignItems: "flex-start", gap: "12px", cursor: "pointer", textAlign: "left" }}>
           <input type="checkbox" checked={termsConfirmed} onChange={e => setTermsConfirmed(e.target.checked)} style={{ marginTop: "3px", accentColor: "#c9a96e", flexShrink: 0 }} />
           <span style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: "1.6" }}>
-            I have read and agree to Pearup's Terms of Service and Privacy Policy.{" "}
-            <Link href="/terms" target="_blank" style={{ color: "#c9a96e", textDecoration: "underline" }}>Read Terms</Link>
-            {" "}·{" "}
-            <Link href="/privacy" target="_blank" style={{ color: "#c9a96e", textDecoration: "underline" }}>Read Privacy Policy</Link>
+            I have read and agree to Pearup's{" "}
+            <Link href="/legal" target="_blank" style={{ color: "#c9a96e", textDecoration: "underline" }}>Terms, Privacy Policy, and Agreements</Link>
           </span>
         </label>
 
