@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 
 type Tab = "payouts" | "users" | "creators" | "brands" | "deals" | "messages" | "support";
 
-type User = { id: string; full_name: string | null; email: string; user_type: string; deal_count: number; total_revenue: number; profile_complete: boolean; joined_at: string };
+type User = { id: string; full_name: string | null; email: string; user_type: string; avatar_url: string | null; deal_count: number; total_revenue: number; profile_complete: boolean; joined_at: string };
 type Creator = { id: string; full_name: string | null; bio: string | null; niche: string[]; platforms: string[]; follower_count: number | null; rate_per_post: number | null; avatar_url: string | null };
 type Brand = { id: string; brand_name: string; description: string | null; industry: string[]; budget_min: number | null; avatar_url: string | null };
 type Deal = { id: string; brand_name: string; creator_name: string; pitcher_name: string; pitcher_type: string; receiver_name: string; receiver_type: string; message: string; budget: string | null; status: string; payment_status: string | null; content_status: string | null; payout_sent: boolean; post_link: string | null; created_at: string };
@@ -80,6 +80,7 @@ export default function AdminPage() {
   const [tabLoading, setTabLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [userSearch, setUserSearch] = useState("");
+  const [userTypeFilter, setUserTypeFilter] = useState<string | null>(null);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
   const [creators, setCreators] = useState<Creator[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -150,6 +151,7 @@ export default function AdminPage() {
       const data = await res.json();
       setUsers(Array.isArray(data) ? data : []);
       setUserSearch("");
+      setUserTypeFilter(null);
     } else if (tab === "creators") {
       const { data } = await supabase
         .from("creator_profiles")
@@ -331,79 +333,81 @@ export default function AdminPage() {
 
             {/* USERS */}
             {activeTab === "users" && (() => {
+              const chipStyle = (active: boolean) => ({
+                padding: "7px 14px", border: `1px solid ${active ? "#c9a96e" : "rgba(255,255,255,0.12)"}`,
+                backgroundColor: active ? "rgba(201,169,110,0.12)" : "transparent",
+                color: active ? "#c9a96e" : "rgba(255,255,255,0.65)",
+                fontFamily: "Arial", fontSize: "10px", letterSpacing: "1px",
+                cursor: "pointer", textTransform: "uppercase" as const, background: active ? "rgba(201,169,110,0.12)" : "none",
+              });
               const filtered = users.filter(u =>
-                !userSearch ||
-                (u.full_name || "").toLowerCase().includes(userSearch.toLowerCase()) ||
-                u.email.toLowerCase().includes(userSearch.toLowerCase())
+                (!userTypeFilter || u.user_type === userTypeFilter) &&
+                (!userSearch || (u.full_name || "").toLowerCase().includes(userSearch.toLowerCase()) || u.email.toLowerCase().includes(userSearch.toLowerCase()))
               );
-              const ghosts = users.filter(u => u.user_type !== "admin" && !u.profile_complete).length;
-              const totalRevenue = users.reduce((s, u) => s + u.total_revenue, 0);
+              const count = (t: string) => users.filter(u => u.user_type === t).length;
               return (
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                  {/* Header + summary */}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "4px" }}>
-                    <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", margin: "0" }}>{users.length} accounts</p>
-                    <div style={{ display: "flex", gap: "16px" }}>
-                      {ghosts > 0 && <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "1.5px", color: "rgba(255,149,0,0.8)", border: "1px solid rgba(255,149,0,0.3)", padding: "3px 10px", textTransform: "uppercase" }}>{ghosts} incomplete</span>}
-                      {totalRevenue > 0 && <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "1.5px", color: "#c9a96e", border: "1px solid rgba(201,169,110,0.3)", padding: "3px 10px", textTransform: "uppercase" }}>${totalRevenue.toLocaleString()} pipeline</span>}
-                    </div>
+                <div>
+                  {/* Filter chips — exactly like discover */}
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "28px" }}>
+                    <button onClick={() => setUserTypeFilter(null)} style={chipStyle(!userTypeFilter)}>All ({users.length})</button>
+                    <button onClick={() => setUserTypeFilter("creator")} style={chipStyle(userTypeFilter === "creator")}>Creator ({count("creator")})</button>
+                    <button onClick={() => setUserTypeFilter("brand")} style={chipStyle(userTypeFilter === "brand")}>Brand ({count("brand")})</button>
+                    <button onClick={() => setUserTypeFilter("admin")} style={chipStyle(userTypeFilter === "admin")}>Admin ({count("admin")})</button>
                   </div>
 
-                  {/* Search */}
-                  <input
-                    type="text"
-                    placeholder="Search by name or email…"
-                    value={userSearch}
-                    onChange={e => setUserSearch(e.target.value)}
-                    style={{ padding: "12px 16px", backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "white", fontFamily: "Georgia, serif", fontSize: "14px", outline: "none", width: "100%" }}
-                  />
+                  {filtered.length === 0 && <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No users found.</p>}
 
-                  {filtered.length === 0 && <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No users match.</p>}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    {filtered.map(u => (
+                      <div key={u.id} style={{ border: "1px solid rgba(255,255,255,0.08)", padding: "24px", backgroundColor: "rgba(255,255,255,0.02)" }}>
 
-                  {filtered.map(u => (
-                    <div key={u.id} style={{ border: "1px solid rgba(255,255,255,0.08)", padding: "20px", backgroundColor: "rgba(255,255,255,0.02)" }}>
-                      {/* Top row: name + controls */}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
-                        <div>
-                          <p style={{ fontFamily: "Arial", fontSize: "14px", fontWeight: "600", color: "white", margin: "0 0 3px" }}>{u.full_name || "—"}</p>
-                          <p style={{ fontFamily: "Arial", fontSize: "11px", color: "rgba(255,255,255,0.35)", margin: "0", letterSpacing: "0.3px" }}>{u.email}</p>
+                        {/* Avatar + name + stats — mirrors discover creator card header */}
+                        <div style={{ display: "flex", gap: "14px", alignItems: "flex-start", marginBottom: "12px" }}>
+                          <Avatar url={u.avatar_url} name={u.full_name} size={48} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                              <div>
+                                <p style={{ fontFamily: "Arial", fontSize: "15px", fontWeight: "600", color: "white", margin: "0 0 3px" }}>{u.full_name || "—"}</p>
+                                <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "1px", color: "rgba(255,255,255,0.4)", margin: "0" }}>{u.email}</p>
+                              </div>
+                              <div style={{ textAlign: "right" }}>
+                                <p style={{ fontFamily: "Arial", fontSize: "11px", color: "#c9a96e", margin: "0 0 2px" }}>{u.deal_count} deal{u.deal_count !== 1 ? "s" : ""}</p>
+                                <p style={{ fontFamily: "Arial", fontSize: "11px", color: "rgba(255,255,255,0.55)", margin: "0" }}>${u.total_revenue > 0 ? u.total_revenue.toLocaleString() : "0"} pipeline</p>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+
+                        {/* Tags — mirrors niche tags */}
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px" }}>
+                          <span style={{ padding: "4px 10px", border: `1px solid ${typeColor(u.user_type)}`, color: typeColor(u.user_type), fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase" }}>{u.user_type}</span>
                           {u.user_type !== "admin" && (
-                            <span style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "1.5px", textTransform: "uppercase", color: u.profile_complete ? "#4ade80" : "rgba(255,149,0,0.85)", border: `1px solid ${u.profile_complete ? "rgba(74,222,128,0.3)" : "rgba(255,149,0,0.35)"}`, padding: "3px 8px" }}>
+                            <span style={{ padding: "4px 10px", border: `1px solid ${u.profile_complete ? "rgba(74,222,128,0.3)" : "rgba(255,149,0,0.35)"}`, color: u.profile_complete ? "#4ade80" : "rgba(255,149,0,0.85)", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase" }}>
                               {u.profile_complete ? "Profile ✓" : "Incomplete"}
                             </span>
                           )}
+                          {u.joined_at && <span style={{ padding: "4px 10px", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.3)", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase" }}>Joined {new Date(u.joined_at).toLocaleDateString()}</span>}
+                        </div>
+
+                        {/* Bottom row — mirrors "🔒 Contact" + View Profile */}
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                           <select
                             value={u.user_type}
                             onChange={e => updateUserType(u.id, e.target.value)}
                             disabled={updatingUserId === u.id}
-                            style={{ backgroundColor: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", color: typeColor(u.user_type), fontFamily: "Arial", fontSize: "9px", letterSpacing: "1.5px", textTransform: "uppercase", padding: "5px 8px", cursor: "pointer", outline: "none" }}
+                            style={{ padding: "7px 10px", backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.55)", fontFamily: "Arial", fontSize: "10px", letterSpacing: "1px", textTransform: "uppercase", cursor: "pointer", outline: "none" }}
                           >
                             <option value="creator">Creator</option>
                             <option value="brand">Brand</option>
                             <option value="admin">Admin</option>
                           </select>
+                          {u.profile_complete && u.user_type !== "admin" && (
+                            <button onClick={() => router.push(`/profile/${u.id}`)} style={{ backgroundColor: "#c9a96e", color: "#0a0a0a", padding: "10px 20px", fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer" }}>View Profile</button>
+                          )}
                         </div>
                       </div>
-
-                      {/* Stats row */}
-                      <div style={{ display: "flex", gap: "10px" }}>
-                        <div style={{ flex: 1, border: "1px solid rgba(255,255,255,0.06)", padding: "10px 14px" }}>
-                          <p style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", color: "rgba(255,255,255,0.28)", textTransform: "uppercase", margin: "0 0 5px" }}>Deals</p>
-                          <p style={{ fontFamily: "Arial", fontSize: "22px", fontWeight: "700", color: u.deal_count > 0 ? "white" : "rgba(255,255,255,0.18)", margin: "0", lineHeight: "1" }}>{u.deal_count}</p>
-                        </div>
-                        <div style={{ flex: 1, border: "1px solid rgba(255,255,255,0.06)", padding: "10px 14px" }}>
-                          <p style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", color: "rgba(255,255,255,0.28)", textTransform: "uppercase", margin: "0 0 5px" }}>Pipeline</p>
-                          <p style={{ fontFamily: "Arial", fontSize: "22px", fontWeight: "700", color: u.total_revenue > 0 ? "#c9a96e" : "rgba(255,255,255,0.18)", margin: "0", lineHeight: "1" }}>${u.total_revenue > 0 ? u.total_revenue.toLocaleString() : "0"}</p>
-                        </div>
-                        <div style={{ flex: 1, border: "1px solid rgba(255,255,255,0.06)", padding: "10px 14px" }}>
-                          <p style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", color: "rgba(255,255,255,0.28)", textTransform: "uppercase", margin: "0 0 5px" }}>Joined</p>
-                          <p style={{ fontFamily: "Arial", fontSize: "13px", fontWeight: "600", color: "rgba(255,255,255,0.55)", margin: "0", lineHeight: "1.4" }}>{u.joined_at ? new Date(u.joined_at).toLocaleDateString() : "—"}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               );
             })()}

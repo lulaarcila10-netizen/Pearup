@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     { data: brandProfiles },
     { data: authData },
   ] = await Promise.all([
-    admin.from("profiles").select("id, full_name, user_type"),
+    admin.from("profiles").select("id, full_name, user_type, avatar_url"),
     admin.from("deals").select("brand_id, creator_id, budget, status"),
     admin.from("creator_profiles").select("id"),
     admin.from("brand_profiles").select("id"),
@@ -62,6 +62,7 @@ export async function GET(request: Request) {
     full_name: p.full_name,
     email: emailMap[p.id] || "",
     user_type: p.user_type,
+    avatar_url: p.avatar_url || null,
     deal_count: dealCounts[p.id] || 0,
     total_revenue: dealRevenue[p.id] || 0,
     profile_complete: p.user_type === "admin" ? true : completedIds.has(p.id),
