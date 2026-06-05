@@ -7,8 +7,8 @@ import { supabase } from "@/lib/supabase";
 type Tab = "payouts" | "users" | "creators" | "brands" | "deals" | "messages" | "support";
 
 type User = { id: string; full_name: string | null; user_type: string };
-type Creator = { id: string; full_name: string | null; bio: string | null; niche: string[]; platforms: string[]; follower_count: number | null; rate_per_post: number | null };
-type Brand = { id: string; brand_name: string; description: string | null; industry: string[]; budget_min: number | null };
+type Creator = { id: string; full_name: string | null; bio: string | null; niche: string[]; platforms: string[]; follower_count: number | null; rate_per_post: number | null; avatar_url: string | null };
+type Brand = { id: string; brand_name: string; description: string | null; industry: string[]; budget_min: number | null; avatar_url: string | null };
 type Deal = { id: string; brand_name: string; creator_name: string; pitcher_name: string; pitcher_type: string; receiver_name: string; receiver_type: string; message: string; budget: string | null; status: string; payment_status: string | null; content_status: string | null; payout_sent: boolean; post_link: string | null; created_at: string };
 type Payout = { id: string; creator_id: string; creator_name: string; brand_name: string; budget: string | null; payout_method: string | null; payout_sent: boolean };
 type MessageItem = { id: string; sender_id: string; sender_name: string; side: "brand" | "creator"; content: string; type: string; offer_amount: string | null; created_at: string };
@@ -62,6 +62,15 @@ function Card({ children }: { children: React.ReactNode }) {
 
 function Badge({ text, color }: { text: string; color: string }) {
   return <span style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", textTransform: "uppercase", color, border: `1px solid ${color}`, padding: "2px 8px", alignSelf: "flex-start" }}>{text}</span>;
+}
+
+function Avatar({ url, name, size = 48 }: { url: string | null; name: string | null; size?: number }) {
+  if (url) return <img src={url} alt={name || ""} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />;
+  return (
+    <div style={{ width: size, height: size, borderRadius: "50%", backgroundColor: "rgba(201,169,110,0.1)", border: "1px solid rgba(201,169,110,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+      <span style={{ color: "#c9a96e", fontFamily: "Arial", fontSize: size * 0.35, fontWeight: "700" }}>{(name || "?")[0].toUpperCase()}</span>
+    </div>
+  );
 }
 
 export default function AdminPage() {
@@ -138,7 +147,7 @@ export default function AdminPage() {
     } else if (tab === "creators") {
       const { data } = await supabase
         .from("creator_profiles")
-        .select("id, bio, niche, platforms, follower_count, rate_per_post, profiles(full_name)");
+        .select("id, bio, niche, platforms, follower_count, rate_per_post, profiles(full_name, avatar_url)");
       setCreators((data || []).map((c: any) => ({
         id: c.id,
         full_name: c.profiles?.full_name || null,
@@ -147,10 +156,11 @@ export default function AdminPage() {
         platforms: c.platforms || [],
         follower_count: c.follower_count,
         rate_per_post: c.rate_per_post,
+        avatar_url: c.profiles?.avatar_url || null,
       })));
     } else if (tab === "brands") {
-      const { data } = await supabase.from("brand_profiles").select("id, brand_name, description, industry, budget_min");
-      setBrands(data || []);
+      const { data } = await supabase.from("brand_profiles").select("id, brand_name, description, industry, budget_min, profiles(avatar_url)");
+      setBrands((data || []).map((b: any) => ({ ...b, avatar_url: b.profiles?.avatar_url || null })));
     } else if (tab === "deals") {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
@@ -319,62 +329,66 @@ export default function AdminPage() {
 
             {/* CREATORS */}
             {activeTab === "creators" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "16px" }}>{creators.length} creators</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "8px" }}>{creators.length} creators</p>
                 {creators.length === 0 && <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No creators yet.</p>}
-                {creators.map(c => {
-                  const expanded = expandedCreators.has(c.id);
-                  const toggle = () => setExpandedCreators(prev => {
-                    const next = new Set(prev);
-                    expanded ? next.delete(c.id) : next.add(c.id);
-                    return next;
-                  });
-                  return (
-                    <Card key={c.id}>
-                      {/* Always visible */}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                        <p style={{ fontFamily: "Arial", fontSize: "14px", fontWeight: "600", color: "white", margin: "0" }}>{c.full_name || "—"}</p>
-                        <div style={{ display: "flex", gap: "8px" }}>
-                          <button onClick={toggle} style={{ background: "none", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.6)", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", cursor: "pointer" }}>
-                            {expanded ? "Show less" : "Show more"}
-                          </button>
-                          <button onClick={() => router.push(`/profile/${c.id}`)} style={{ background: "none", border: "1px solid rgba(201,169,110,0.4)", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase", padding: "4px 10px", cursor: "pointer" }}>
-                            View Profile
-                          </button>
+                {creators.map(c => (
+                  <div key={c.id} style={{ border: "1px solid rgba(255,255,255,0.08)", padding: "24px", backgroundColor: "rgba(255,255,255,0.02)" }}>
+                    <div style={{ display: "flex", gap: "14px", alignItems: "flex-start", marginBottom: "12px" }}>
+                      <Avatar url={c.avatar_url} name={c.full_name} size={48} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                          <div>
+                            <p style={{ fontFamily: "Arial", fontSize: "15px", fontWeight: "600", color: "white", margin: "0 0 3px" }}>{c.full_name || "Creator"}</p>
+                            {c.platforms.length > 0 && <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", color: "rgba(255,255,255,0.75)", textTransform: "uppercase", margin: "0" }}>{c.platforms.join(" · ")}</p>}
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <p style={{ fontFamily: "Arial", fontSize: "11px", color: "#c9a96e", margin: "0 0 2px" }}>{c.follower_count ? displayFollowers(c.follower_count) : "—"} followers</p>
+                            <p style={{ fontFamily: "Arial", fontSize: "11px", color: "rgba(255,255,255,0.65)", margin: "0" }}>{c.rate_per_post ? displayRate(c.rate_per_post) : "—"} / post</p>
+                          </div>
                         </div>
                       </div>
-                      {c.follower_count && <Row label="Followers" value={displayFollowers(c.follower_count)} />}
-                      {c.rate_per_post && <Row label="Rate" value={displayRate(c.rate_per_post)} />}
-                      {c.niche.length > 0 && (
-                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
-                          {c.niche.map(n => <span key={n} style={{ padding: "3px 8px", border: "1px solid rgba(201,169,110,0.25)", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase" }}>{n}</span>)}
-                        </div>
-                      )}
-                      {/* Expanded details */}
-                      {expanded && (
-                        <>
-                          {c.bio && <Row label="Bio" value={c.bio} />}
-                          {c.platforms.length > 0 && <Row label="Platforms" value={c.platforms.join(", ")} />}
-                        </>
-                      )}
-                    </Card>
-                  );
-                })}
+                    </div>
+                    {c.bio && <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.72)", lineHeight: "1.7", margin: "0 0 14px" }}>{c.bio}</p>}
+                    {c.niche.length > 0 && (
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px" }}>
+                        {c.niche.map(n => <span key={n} style={{ padding: "4px 10px", border: "1px solid rgba(201,169,110,0.25)", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase" }}>{n}</span>)}
+                      </div>
+                    )}
+                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                      <button onClick={() => router.push(`/profile/${c.id}`)} style={{ backgroundColor: "#c9a96e", color: "#0a0a0a", padding: "10px 20px", fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer" }}>View Profile</button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
             {/* BRANDS */}
             {activeTab === "brands" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "16px" }}>{brands.length} brands</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "8px" }}>{brands.length} brands</p>
                 {brands.length === 0 && <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No brands yet.</p>}
                 {brands.map(b => (
-                  <Card key={b.id}>
-                    <p style={{ fontFamily: "Arial", fontSize: "14px", fontWeight: "600", color: "white", margin: "0" }}>{b.brand_name}</p>
-                    {b.description && <Row label="About" value={b.description} />}
-                    {b.industry.length > 0 && <Row label="Industry" value={b.industry.join(", ")} />}
-                    {b.budget_min && <Row label="Budget" value={`$${b.budget_min.toLocaleString()}+`} />}
-                  </Card>
+                  <div key={b.id} style={{ border: "1px solid rgba(255,255,255,0.08)", padding: "24px", backgroundColor: "rgba(255,255,255,0.02)" }}>
+                    <div style={{ display: "flex", gap: "14px", alignItems: "flex-start", marginBottom: "12px" }}>
+                      <Avatar url={b.avatar_url} name={b.brand_name} size={48} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                          <p style={{ fontFamily: "Arial", fontSize: "15px", fontWeight: "600", color: "white", margin: "0" }}>{b.brand_name}</p>
+                          <p style={{ fontFamily: "Arial", fontSize: "11px", color: "#c9a96e", margin: "0" }}>{b.budget_min ? `$${b.budget_min.toLocaleString()}+` : "—"} / deal</p>
+                        </div>
+                      </div>
+                    </div>
+                    {b.description && <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.72)", lineHeight: "1.7", margin: "0 0 14px" }}>{b.description}</p>}
+                    {b.industry.length > 0 && (
+                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px" }}>
+                        {b.industry.map(i => <span key={i} style={{ padding: "4px 10px", border: "1px solid rgba(201,169,110,0.25)", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase" }}>{i}</span>)}
+                      </div>
+                    )}
+                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                      <button onClick={() => router.push(`/profile/${b.id}`)} style={{ backgroundColor: "#c9a96e", color: "#0a0a0a", padding: "10px 20px", fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer" }}>View Profile</button>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}

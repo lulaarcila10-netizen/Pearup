@@ -19,6 +19,7 @@ export async function GET(request: Request) {
   const { data: messages, error } = await admin
     .from("messages")
     .select("id, deal_id, sender_id, content, type, offer_amount, created_at")
+    .eq("type", "text")
     .order("created_at", { ascending: true })
     .limit(2000);
 
