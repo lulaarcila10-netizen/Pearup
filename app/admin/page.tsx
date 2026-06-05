@@ -150,33 +150,17 @@ export default function AdminPage() {
       const { data } = await supabase.from("brand_profiles").select("id, brand_name, description, industry, budget_min");
       setBrands(data || []);
     } else if (tab === "deals") {
-      const { data } = await supabase.from("deals").select("id, brand_id, creator_id, message, budget, status, payment_status, content_status, payout_sent, post_link, created_at").order("created_at", { ascending: false });
-      if (data && data.length > 0) {
-        const brandIds = [...new Set(data.map(d => d.brand_id))];
-        const creatorIds = [...new Set(data.map(d => d.creator_id))];
-        const [{ data: bd }, { data: cd }] = await Promise.all([
-          supabase.from("brand_profiles").select("id, brand_name").in("id", brandIds),
-          supabase.from("profiles").select("id, full_name").in("id", creatorIds),
-        ]);
-        const bMap: Record<string, string> = {};
-        bd?.forEach((b: any) => { bMap[b.id] = b.brand_name; });
-        const cMap: Record<string, string> = {};
-        cd?.forEach((c: any) => { cMap[c.id] = c.full_name || "Creator"; });
-        setDeals(data.map(d => ({ id: d.id, brand_name: bMap[d.brand_id] || "Unknown", creator_name: cMap[d.creator_id] || "Unknown", message: d.message, budget: d.budget, status: d.status, payment_status: d.payment_status, content_status: d.content_status, payout_sent: d.payout_sent || false, post_link: d.post_link, created_at: d.created_at })));
-      } else {
-        setDeals([]);
-      }
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch("/api/admin/deals", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      setDeals(Array.isArray(data) ? data : []);
     } else if (tab === "messages") {
-      const { data } = await supabase.from("messages").select("id, deal_id, sender_id, content, type, created_at").order("created_at", { ascending: false }).limit(300);
-      if (data && data.length > 0) {
-        const senderIds = [...new Set(data.map((m: any) => m.sender_id))];
-        const { data: pd } = await supabase.from("profiles").select("id, full_name").in("id", senderIds);
-        const nameMap: Record<string, string> = {};
-        pd?.forEach((p: any) => { nameMap[p.id] = p.full_name || "Unknown"; });
-        setMessages(data.map((m: any) => ({ ...m, sender_name: nameMap[m.sender_id] || "Unknown" })));
-      } else {
-        setMessages([]);
-      }
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch("/api/admin/messages", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      setMessages(Array.isArray(data) ? data : []);
     } else if (tab === "support") {
       const { data: allMsgs } = await supabase.from("support_messages").select("user_id, content, sender_type, created_at").order("created_at", { ascending: false });
       if (allMsgs && allMsgs.length > 0) {
