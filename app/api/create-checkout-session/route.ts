@@ -3,7 +3,7 @@ import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-const PEARUP_FEE = 0.10;
+const PEARUP_FEE = 0.12;
 
 function parseAmountCents(budget: string | null): number {
   if (!budget) return 0;
