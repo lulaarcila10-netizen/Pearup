@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 
 type Tab = "payouts" | "users" | "creators" | "brands" | "deals" | "messages" | "support";
 
-type User = { id: string; full_name: string | null; email: string; user_type: string; avatar_url: string | null; deal_count: number; total_revenue: number; profile_complete: boolean; joined_at: string };
+type User = { id: string; full_name: string | null; email: string; user_type: string; avatar_url: string | null; deal_count: number; total_revenue: number; completion: number; joined_at: string };
 type Creator = { id: string; full_name: string | null; bio: string | null; niche: string[]; platforms: string[]; follower_count: number | null; rate_per_post: number | null; avatar_url: string | null };
 type Brand = { id: string; brand_name: string; description: string | null; industry: string[]; budget_min: number | null; avatar_url: string | null };
 type Deal = { id: string; brand_name: string; creator_name: string; pitcher_name: string; pitcher_type: string; receiver_name: string; receiver_type: string; message: string; budget: string | null; status: string; payment_status: string | null; content_status: string | null; payout_sent: boolean; post_link: string | null; created_at: string };
@@ -382,8 +382,8 @@ export default function AdminPage() {
                         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "16px" }}>
                           <span style={{ padding: "4px 10px", border: `1px solid ${typeColor(u.user_type)}`, color: typeColor(u.user_type), fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase" }}>{u.user_type}</span>
                           {u.user_type !== "admin" && (
-                            <span style={{ padding: "4px 10px", border: `1px solid ${u.profile_complete ? "rgba(74,222,128,0.3)" : "rgba(255,149,0,0.35)"}`, color: u.profile_complete ? "#4ade80" : "rgba(255,149,0,0.85)", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase" }}>
-                              {u.profile_complete ? "Profile ✓" : "Incomplete"}
+                            <span style={{ padding: "4px 10px", border: `1px solid ${u.completion === 100 ? "rgba(74,222,128,0.3)" : u.completion > 0 ? "rgba(255,149,0,0.35)" : "rgba(255,100,100,0.3)"}`, color: u.completion === 100 ? "#4ade80" : u.completion > 0 ? "rgba(255,149,0,0.85)" : "rgba(255,100,100,0.7)", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase" }}>
+                              {u.completion === 0 ? "No Profile" : `${u.completion}%`}
                             </span>
                           )}
                           {u.joined_at && <span style={{ padding: "4px 10px", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.3)", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", textTransform: "uppercase" }}>Joined {new Date(u.joined_at).toLocaleDateString()}</span>}
@@ -401,7 +401,7 @@ export default function AdminPage() {
                             <option value="brand">Brand</option>
                             <option value="admin">Admin</option>
                           </select>
-                          {u.profile_complete && u.user_type !== "admin" && (
+                          {u.completion > 0 && u.user_type !== "admin" && (
                             <button onClick={() => router.push(`/profile/${u.id}`)} style={{ backgroundColor: "#c9a96e", color: "#0a0a0a", padding: "10px 20px", fontFamily: "Arial", fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", fontWeight: "700", border: "none", cursor: "pointer" }}>View Profile</button>
                           )}
                         </div>

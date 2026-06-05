@@ -16,6 +16,32 @@ async function verifyAdmin(request: Request) {
   return user;
 }
 
+// Creator: 7 fields (avatar is optional but pushes to 100%)
+function creatorCompletion(cp: any, fullName: string | null, avatarUrl: string | null): number {
+  const checks = [
+    !!fullName,
+    !!cp.bio,
+    Array.isArray(cp.niche) && cp.niche.length > 0,
+    Array.isArray(cp.platforms) && cp.platforms.length > 0,
+    !!cp.follower_count,
+    !!cp.rate_per_post,
+    !!avatarUrl,
+  ];
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+}
+
+// Brand: 5 fields (avatar is optional but pushes to 100%)
+function brandCompletion(bp: any, avatarUrl: string | null): number {
+  const checks = [
+    !!bp.brand_name,
+    !!bp.description,
+    Array.isArray(bp.industry) && bp.industry.length > 0,
+    !!bp.budget_min,
+    !!avatarUrl,
+  ];
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+}
+
 export async function GET(request: Request) {
   const user = await verifyAdmin(request);
   if (!user) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -28,9 +54,9 @@ export async function GET(request: Request) {
     { data: authData },
   ] = await Promise.all([
     admin.from("profiles").select("id, full_name, user_type, avatar_url"),
-    admin.from("deals").select("brand_id, creator_id, budget, status"),
-    admin.from("creator_profiles").select("id"),
-    admin.from("brand_profiles").select("id"),
+    admin.from("deals").select("brand_id, creator_id, budget"),
+    admin.from("creator_profiles").select("id, bio, niche, platforms, follower_count, rate_per_post"),
+    admin.from("brand_profiles").select("id, brand_name, description, industry, budget_min"),
     admin.auth.admin.listUsers({ perPage: 1000 }),
   ]);
 
@@ -39,6 +65,13 @@ export async function GET(request: Request) {
   authData?.users?.forEach((u: any) => {
     emailMap[u.id] = u.email || "";
     joinedMap[u.id] = u.created_at || "";
+  });
+
+  const fullNameMap: Record<string, string | null> = {};
+  const avatarMap: Record<string, string | null> = {};
+  profiles?.forEach((p: any) => {
+    fullNameMap[p.id] = p.full_name || null;
+    avatarMap[p.id] = p.avatar_url || null;
   });
 
   const dealCounts: Record<string, number> = {};
@@ -52,10 +85,14 @@ export async function GET(request: Request) {
     });
   });
 
-  const completedIds = new Set([
-    ...(creatorProfiles?.map((c: any) => c.id) || []),
-    ...(brandProfiles?.map((b: any) => b.id) || []),
-  ]);
+  // Build completion percentages
+  const completionMap: Record<string, number> = {};
+  creatorProfiles?.forEach((cp: any) => {
+    completionMap[cp.id] = creatorCompletion(cp, fullNameMap[cp.id] ?? null, avatarMap[cp.id] ?? null);
+  });
+  brandProfiles?.forEach((bp: any) => {
+    completionMap[bp.id] = brandCompletion(bp, avatarMap[bp.id] ?? null);
+  });
 
   const result = (profiles || []).map((p: any) => ({
     id: p.id,
@@ -65,7 +102,7 @@ export async function GET(request: Request) {
     avatar_url: p.avatar_url || null,
     deal_count: dealCounts[p.id] || 0,
     total_revenue: dealRevenue[p.id] || 0,
-    profile_complete: p.user_type === "admin" ? true : completedIds.has(p.id),
+    completion: p.user_type === "admin" ? 100 : (completionMap[p.id] ?? 0),
     joined_at: joinedMap[p.id] || "",
   }));
 
