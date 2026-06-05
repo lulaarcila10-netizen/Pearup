@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
@@ -9,11 +9,23 @@ type Tab = "payouts" | "users" | "creators" | "brands" | "deals" | "messages" | 
 type User = { id: string; full_name: string | null; user_type: string };
 type Creator = { id: string; full_name: string | null; bio: string | null; niche: string[]; platforms: string[]; follower_count: number | null; rate_per_post: number | null };
 type Brand = { id: string; brand_name: string; description: string | null; industry: string[]; budget_min: number | null };
-type Deal = { id: string; brand_name: string; creator_name: string; message: string; budget: string | null; status: string; payment_status: string | null; created_at: string };
+type Deal = { id: string; brand_name: string; creator_name: string; message: string; budget: string | null; status: string; payment_status: string | null; content_status: string | null; payout_sent: boolean; post_link: string | null; created_at: string };
 type Payout = { id: string; creator_id: string; creator_name: string; brand_name: string; budget: string | null; payout_method: string | null; payout_sent: boolean };
-type Message = { id: string; deal_id: string; sender_id: string; content: string; type: string; created_at: string };
+type Message = { id: string; deal_id: string; sender_id: string; sender_name: string; content: string; type: string; created_at: string };
 type SupportThread = { user_id: string; user_name: string; user_type: string; last_message: string; last_message_at: string };
 type SupportMsg = { id: string; user_id: string; sender_type: string; content: string; created_at: string };
+
+const PIPELINE_LABELS = ["Proposed", "Accepted", "Paid", "Content In", "Approved", "Paid Out"] as const;
+
+function getPipelineStep(d: { status: string; payment_status: string | null; content_status: string | null; payout_sent: boolean }): number {
+  if (d.status === "declined") return -1;
+  if (d.payout_sent) return 6;
+  if (d.content_status === "approved") return 5;
+  if (d.content_status) return 4;
+  if (d.payment_status === "paid") return 3;
+  if (d.status === "accepted") return 2;
+  return 1;
+}
 
 const statusColor = (s: string) => s === "accepted" ? "#4ade80" : s === "declined" ? "rgba(255,100,100,0.7)" : "#c9a96e";
 const typeColor = (t: string) => t === "creator" ? "#c9a96e" : t === "brand" ? "rgba(255,255,255,0.7)" : "#a78bfa";
@@ -138,7 +150,7 @@ export default function AdminPage() {
       const { data } = await supabase.from("brand_profiles").select("id, brand_name, description, industry, budget_min");
       setBrands(data || []);
     } else if (tab === "deals") {
-      const { data } = await supabase.from("deals").select("id, brand_id, creator_id, message, budget, status, payment_status, created_at").order("created_at", { ascending: false });
+      const { data } = await supabase.from("deals").select("id, brand_id, creator_id, message, budget, status, payment_status, content_status, payout_sent, post_link, created_at").order("created_at", { ascending: false });
       if (data && data.length > 0) {
         const brandIds = [...new Set(data.map(d => d.brand_id))];
         const creatorIds = [...new Set(data.map(d => d.creator_id))];
@@ -150,13 +162,21 @@ export default function AdminPage() {
         bd?.forEach((b: any) => { bMap[b.id] = b.brand_name; });
         const cMap: Record<string, string> = {};
         cd?.forEach((c: any) => { cMap[c.id] = c.full_name || "Creator"; });
-        setDeals(data.map(d => ({ id: d.id, brand_name: bMap[d.brand_id] || "Unknown", creator_name: cMap[d.creator_id] || "Unknown", message: d.message, budget: d.budget, status: d.status, payment_status: d.payment_status, created_at: d.created_at })));
+        setDeals(data.map(d => ({ id: d.id, brand_name: bMap[d.brand_id] || "Unknown", creator_name: cMap[d.creator_id] || "Unknown", message: d.message, budget: d.budget, status: d.status, payment_status: d.payment_status, content_status: d.content_status, payout_sent: d.payout_sent || false, post_link: d.post_link, created_at: d.created_at })));
       } else {
         setDeals([]);
       }
     } else if (tab === "messages") {
       const { data } = await supabase.from("messages").select("id, deal_id, sender_id, content, type, created_at").order("created_at", { ascending: false }).limit(300);
-      setMessages(data || []);
+      if (data && data.length > 0) {
+        const senderIds = [...new Set(data.map((m: any) => m.sender_id))];
+        const { data: pd } = await supabase.from("profiles").select("id, full_name").in("id", senderIds);
+        const nameMap: Record<string, string> = {};
+        pd?.forEach((p: any) => { nameMap[p.id] = p.full_name || "Unknown"; });
+        setMessages(data.map((m: any) => ({ ...m, sender_name: nameMap[m.sender_id] || "Unknown" })));
+      } else {
+        setMessages([]);
+      }
     } else if (tab === "support") {
       const { data: allMsgs } = await supabase.from("support_messages").select("user_id, content, sender_type, created_at").order("created_at", { ascending: false });
       if (allMsgs && allMsgs.length > 0) {
@@ -374,30 +394,62 @@ export default function AdminPage() {
 
             {/* DEALS */}
             {activeTab === "deals" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "16px" }}>{deals.length} deals</p>
                 {deals.length === 0 && <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No deals yet.</p>}
-                {deals.map(d => (
-                  <Card key={d.id}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                      <div>
-                        <p style={{ fontFamily: "Arial", fontSize: "13px", fontWeight: "600", color: "white", margin: "0 0 2px" }}>{d.brand_name} → {d.creator_name}</p>
-                        {d.budget && <p style={{ fontFamily: "Arial", fontSize: "11px", color: "#c9a96e", margin: "0" }}>{d.budget}</p>}
+                {deals.map(d => {
+                  const step = getPipelineStep(d);
+                  const declined = step === -1;
+                  const amount = d.budget ? parseFloat(d.budget.replace(/[^0-9.]/g, "")) : null;
+                  return (
+                    <div key={d.id} style={{ border: `1px solid ${declined ? "rgba(255,100,100,0.2)" : "rgba(255,255,255,0.08)"}`, padding: "18px 20px", backgroundColor: "rgba(255,255,255,0.02)", display: "flex", flexDirection: "column", gap: "14px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div>
+                          <p style={{ fontFamily: "Arial", fontSize: "13px", fontWeight: "600", color: "white", margin: "0 0 3px" }}>{d.brand_name} → {d.creator_name}</p>
+                          <p style={{ fontFamily: "Arial", fontSize: "10px", color: "rgba(255,255,255,0.3)", margin: "0", letterSpacing: "1px" }}>{new Date(d.created_at).toLocaleDateString()}</p>
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-end" }}>
+                          {d.budget && <span style={{ fontFamily: "Arial", fontSize: "14px", fontWeight: "700", color: "#c9a96e" }}>{d.budget}</span>}
+                          {declined
+                            ? <Badge text="declined" color="rgba(255,100,100,0.7)" />
+                            : amount ? <span style={{ fontFamily: "Arial", fontSize: "9px", color: "rgba(255,255,255,0.3)", letterSpacing: "1px" }}>fee ${(amount * 0.12).toFixed(2)}</span> : null
+                          }
+                        </div>
                       </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-end" }}>
-                        <Badge text={d.status} color={statusColor(d.status)} />
-                        {d.payment_status === "paid" && <Badge text="paid" color="#4ade80" />}
-                      </div>
+
+                      {declined ? (
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.35)", margin: "0", fontStyle: "italic" }}>&ldquo;{d.message.length > 90 ? d.message.slice(0, 90) + "…" : d.message}&rdquo;</p>
+                      ) : (
+                        <div style={{ display: "flex", alignItems: "flex-start" }}>
+                          {PIPELINE_LABELS.map((label, i) => {
+                            const dotFilled = step >= i + 1;
+                            const lineFilled = step >= i + 2;
+                            const isActive = step === i + 1;
+                            const isLast = i === PIPELINE_LABELS.length - 1;
+                            return (
+                              <Fragment key={label}>
+                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: "44px" }}>
+                                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: dotFilled ? "#c9a96e" : "rgba(255,255,255,0.12)", marginBottom: "5px", boxShadow: isActive ? "0 0 6px rgba(201,169,110,0.7)" : "none" }} />
+                                  <span style={{ fontFamily: "Arial", fontSize: "7px", textTransform: "uppercase", letterSpacing: "0.5px", color: dotFilled ? "rgba(201,169,110,0.85)" : "rgba(255,255,255,0.22)", textAlign: "center", lineHeight: "1.3" }}>{label}</span>
+                                </div>
+                                {!isLast && (
+                                  <div style={{ flex: 1, height: "1px", backgroundColor: lineFilled ? "rgba(201,169,110,0.45)" : "rgba(255,255,255,0.08)", marginTop: "3px", minWidth: "8px" }} />
+                                )}
+                              </Fragment>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {d.content_status === "disputed" && (
+                        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,149,0,0.8)", textTransform: "uppercase", border: "1px solid rgba(255,149,0,0.3)", padding: "6px 10px", margin: "0" }}>⚠ Content disputed</p>
+                      )}
+                      {d.post_link && (
+                        <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", color: "rgba(255,255,255,0.35)", margin: "0" }}>Post: <a href={d.post_link} target="_blank" rel="noopener noreferrer" style={{ color: "#c9a96e" }}>{d.post_link}</a></p>
+                      )}
                     </div>
-                    <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.5)", margin: "4px 0 0", lineHeight: "1.6" }}>"{d.message.length > 100 ? d.message.slice(0, 100) + "…" : d.message}"</p>
-                    <Row label="Date" value={new Date(d.created_at).toLocaleDateString()} />
-                    {d.budget && (() => {
-                      const amount = parseFloat(d.budget.replace(/[^0-9.]/g, ""));
-                      if (!isNaN(amount)) return <Row label="Your 12% cut" value={`$${(amount * 0.12).toFixed(2)}`} />;
-                      return null;
-                    })()}
-                  </Card>
-                ))}
+                  );
+                })}
               </div>
             )}
 
@@ -474,10 +526,11 @@ export default function AdminPage() {
                 {messages.map(m => (
                   <div key={m.id} style={{ border: "1px solid rgba(255,255,255,0.06)", padding: "12px 16px", backgroundColor: "rgba(255,255,255,0.01)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                      <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>
-                        Deal {m.deal_id.slice(0, 8)}…
-                      </span>
-                      <div style={{ display: "flex", gap: "8px" }}>
+                      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                        <span style={{ fontFamily: "Arial", fontSize: "10px", fontWeight: "600", color: "rgba(255,255,255,0.65)" }}>{m.sender_name}</span>
+                        <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", color: "rgba(255,255,255,0.25)", textTransform: "uppercase" }}>Deal {m.deal_id.slice(0, 8)}…</span>
+                      </div>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                         {m.type !== "text" && <Badge text={m.type} color="#c9a96e" />}
                         <span style={{ fontFamily: "Arial", fontSize: "9px", color: "rgba(255,255,255,0.3)" }}>{new Date(m.created_at).toLocaleString()}</span>
                       </div>
