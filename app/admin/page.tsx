@@ -11,7 +11,8 @@ type Creator = { id: string; full_name: string | null; bio: string | null; niche
 type Brand = { id: string; brand_name: string; description: string | null; industry: string[]; budget_min: number | null };
 type Deal = { id: string; brand_name: string; creator_name: string; pitcher_name: string; pitcher_type: string; receiver_name: string; receiver_type: string; message: string; budget: string | null; status: string; payment_status: string | null; content_status: string | null; payout_sent: boolean; post_link: string | null; created_at: string };
 type Payout = { id: string; creator_id: string; creator_name: string; brand_name: string; budget: string | null; payout_method: string | null; payout_sent: boolean };
-type Message = { id: string; deal_id: string; sender_id: string; sender_name: string; content: string; type: string; created_at: string };
+type MessageItem = { id: string; sender_id: string; sender_name: string; side: "brand" | "creator"; content: string; type: string; offer_amount: string | null; created_at: string };
+type Conversation = { deal_id: string; brand_id: string; creator_id: string; brand_name: string; creator_name: string; messages: MessageItem[]; last_message: string; last_message_at: string; message_count: number };
 type SupportThread = { user_id: string; user_name: string; user_type: string; last_message: string; last_message_at: string };
 type SupportMsg = { id: string; user_id: string; sender_type: string; content: string; created_at: string };
 
@@ -72,7 +73,8 @@ export default function AdminPage() {
   const [creators, setCreators] = useState<Creator[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [openConvId, setOpenConvId] = useState<string | null>(null);
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [expandedCreators, setExpandedCreators] = useState<Set<string>>(new Set());
   const [supportThreads, setSupportThreads] = useState<SupportThread[]>([]);
@@ -160,7 +162,8 @@ export default function AdminPage() {
       const token = session?.access_token;
       const res = await fetch("/api/admin/messages", { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
-      setMessages(Array.isArray(data) ? data : []);
+      setConversations(Array.isArray(data) ? data : []);
+      setOpenConvId(null);
     } else if (tab === "support") {
       const { data: allMsgs } = await supabase.from("support_messages").select("user_id, content, sender_type, created_at").order("created_at", { ascending: false });
       if (allMsgs && allMsgs.length > 0) {
@@ -199,7 +202,7 @@ export default function AdminPage() {
 
   const tabs: Tab[] = ["payouts", "users", "creators", "brands", "deals", "messages", "support"];
   const pendingPayouts = payouts.filter(p => !p.payout_sent).length;
-  const counts: Record<Tab, number> = { payouts: pendingPayouts, users: users.length, creators: creators.length, brands: brands.length, deals: deals.length, messages: messages.length, support: supportThreads.length };
+  const counts: Record<Tab, number> = { payouts: pendingPayouts, users: users.length, creators: creators.length, brands: brands.length, deals: deals.length, messages: conversations.length, support: supportThreads.length };
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", color: "white", paddingBottom: "40px" }}>
@@ -510,24 +513,96 @@ export default function AdminPage() {
 
             {/* MESSAGES */}
             {activeTab === "messages" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "16px" }}>{messages.length} messages (latest 300)</p>
-                {messages.length === 0 && <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No messages yet.</p>}
-                {messages.map(m => (
-                  <div key={m.id} style={{ border: "1px solid rgba(255,255,255,0.06)", padding: "12px 16px", backgroundColor: "rgba(255,255,255,0.01)" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-                        <span style={{ fontFamily: "Arial", fontSize: "10px", fontWeight: "600", color: "rgba(255,255,255,0.65)" }}>{m.sender_name}</span>
-                        <span style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "1px", color: "rgba(255,255,255,0.25)", textTransform: "uppercase" }}>Deal {m.deal_id.slice(0, 8)}…</span>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "20px" }}>
+                  <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", margin: "0" }}>{conversations.length} conversations</p>
+                  {openConvId && (
+                    <button onClick={() => setOpenConvId(null)} style={{ background: "none", border: "none", color: "#c9a96e", fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", textTransform: "uppercase", cursor: "pointer", padding: "0" }}>← All Conversations</button>
+                  )}
+                </div>
+
+                {conversations.length === 0 && <p style={{ color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "14px" }}>No messages yet.</p>}
+
+                {conversations.map(conv => {
+                  const isOpen = openConvId === conv.deal_id;
+                  return (
+                    <div key={conv.deal_id} style={{ border: `1px solid ${isOpen ? "rgba(201,169,110,0.3)" : "rgba(255,255,255,0.07)"}`, backgroundColor: isOpen ? "rgba(201,169,110,0.03)" : "rgba(255,255,255,0.01)", marginBottom: "8px", transition: "border-color 0.2s" }}>
+
+                      {/* Conversation header */}
+                      <div style={{ padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1, minWidth: 0 }}>
+                          <div style={{ flexShrink: 0 }}>
+                            <p style={{ fontFamily: "Arial", fontSize: "12px", fontWeight: "700", color: "rgba(255,255,255,0.85)", margin: "0 0 1px", whiteSpace: "nowrap" }}>{conv.brand_name}</p>
+                            <p style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "1.5px", color: "rgba(255,255,255,0.28)", textTransform: "uppercase", margin: "0" }}>brand</p>
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, padding: "0 4px" }}>
+                            <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "13px", lineHeight: "1" }}>↔</span>
+                            <span style={{ fontFamily: "Arial", fontSize: "8px", color: "rgba(255,255,255,0.18)", letterSpacing: "1px", marginTop: "2px" }}>{conv.message_count}</span>
+                          </div>
+                          <div style={{ flexShrink: 0 }}>
+                            <p style={{ fontFamily: "Arial", fontSize: "12px", fontWeight: "700", color: "#c9a96e", margin: "0 0 1px", whiteSpace: "nowrap" }}>{conv.creator_name}</p>
+                            <p style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "1.5px", color: "rgba(201,169,110,0.45)", textTransform: "uppercase", margin: "0" }}>creator</p>
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
+                          <span style={{ fontFamily: "Arial", fontSize: "9px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.5px" }}>{conv.last_message_at ? new Date(conv.last_message_at).toLocaleDateString() : ""}</span>
+                          <button
+                            onClick={() => setOpenConvId(isOpen ? null : conv.deal_id)}
+                            style={{ background: "none", border: `1px solid ${isOpen ? "rgba(201,169,110,0.5)" : "rgba(255,255,255,0.15)"}`, color: isOpen ? "#c9a96e" : "rgba(255,255,255,0.5)", fontFamily: "Arial", fontSize: "9px", letterSpacing: "1.5px", textTransform: "uppercase", padding: "6px 14px", cursor: "pointer", whiteSpace: "nowrap" }}
+                          >
+                            {isOpen ? "Close" : "View Chat"}
+                          </button>
+                        </div>
                       </div>
-                      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                        {m.type !== "text" && <Badge text={m.type} color="#c9a96e" />}
-                        <span style={{ fontFamily: "Arial", fontSize: "9px", color: "rgba(255,255,255,0.3)" }}>{new Date(m.created_at).toLocaleString()}</span>
-                      </div>
+
+                      {/* Last message preview */}
+                      {!isOpen && conv.last_message && (
+                        <div style={{ padding: "0 20px 14px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                          <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.35)", margin: "12px 0 0", fontStyle: "italic", lineHeight: "1.6" }}>
+                            &ldquo;{conv.last_message.length > 100 ? conv.last_message.slice(0, 100) + "…" : conv.last_message}&rdquo;
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Full chat */}
+                      {isOpen && (
+                        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                          {/* Legend */}
+                          <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 20px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                            <span style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase" }}>{conv.brand_name}</span>
+                            <span style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", color: "rgba(201,169,110,0.55)", textTransform: "uppercase" }}>{conv.creator_name}</span>
+                          </div>
+
+                          <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: "10px", maxHeight: "420px", overflowY: "auto" }}>
+                            {conv.messages.map(m => {
+                              if (m.type === "system") {
+                                return (
+                                  <div key={m.id} style={{ textAlign: "center", padding: "4px 0" }}>
+                                    <span style={{ fontFamily: "Arial", fontSize: "8px", letterSpacing: "2px", color: "rgba(255,255,255,0.25)", textTransform: "uppercase" }}>{m.content}</span>
+                                  </div>
+                                );
+                              }
+                              const isBrand = m.side === "brand";
+                              return (
+                                <div key={m.id} style={{ display: "flex", justifyContent: isBrand ? "flex-start" : "flex-end" }}>
+                                  <div style={{ maxWidth: "62%", display: "flex", flexDirection: "column", gap: "3px", alignItems: isBrand ? "flex-start" : "flex-end" }}>
+                                    <div style={{ padding: "10px 14px", backgroundColor: isBrand ? "rgba(255,255,255,0.06)" : "rgba(201,169,110,0.1)", border: `1px solid ${isBrand ? "rgba(255,255,255,0.09)" : "rgba(201,169,110,0.22)"}` }}>
+                                      {m.type === "offer" && m.offer_amount && (
+                                        <p style={{ fontFamily: "Arial", fontSize: "10px", fontWeight: "700", color: "#c9a96e", letterSpacing: "1.5px", textTransform: "uppercase", margin: "0 0 6px" }}>Offer · {m.offer_amount}</p>
+                                      )}
+                                      <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: isBrand ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.85)", margin: "0", lineHeight: "1.55" }}>{m.content}</p>
+                                    </div>
+                                    <span style={{ fontFamily: "Arial", fontSize: "8px", color: "rgba(255,255,255,0.2)", letterSpacing: "0.5px" }}>{new Date(m.created_at).toLocaleString()}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.65)", margin: "0", lineHeight: "1.5" }}>{m.content}</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </>
