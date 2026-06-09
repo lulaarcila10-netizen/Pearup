@@ -75,6 +75,7 @@ export default function ProfilePage() {
   const [revisionPolicy, setRevisionPolicy] = useState("");
   const [productShipment, setProductShipment] = useState("");
   const [viewerId, setViewerId] = useState<string | null>(null);
+  const [viewerName, setViewerName] = useState<string>("Someone");
   const [portfolio, setPortfolio] = useState<PortfolioImage[]>([]);
   const [showFeeInfo, setShowFeeInfo] = useState(false);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -87,12 +88,20 @@ export default function ProfilePage() {
 
       const { data: viewerProfile } = await supabase
         .from("profiles")
-        .select("user_type")
+        .select("user_type, full_name")
         .eq("id", user.id)
         .single();
 
       if (!viewerProfile) { router.push("/dashboard"); return; }
       setViewerType(viewerProfile.user_type);
+
+      // Fetch viewer's display name for notifications
+      if (viewerProfile.user_type === "brand") {
+        const { data: vbp } = await supabase.from("brand_profiles").select("brand_name").eq("id", user.id).single();
+        setViewerName(vbp?.brand_name || viewerProfile.full_name || "A brand");
+      } else {
+        setViewerName(viewerProfile.full_name || "A creator");
+      }
 
       const { data: targetProfile } = await supabase
         .from("profiles")
@@ -181,6 +190,16 @@ export default function ProfilePage() {
       status: "pending",
       initiated_by: viewerId,
     });
+
+    // Notify recipient by email (fire-and-forget)
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      fetch("/api/notify/deal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ recipient_id: profileId, sender_name: viewerName, budget: dealBudget || null }),
+      }).catch(() => {});
+    }
 
     setSendingDeal(false);
     setDealSent(true);

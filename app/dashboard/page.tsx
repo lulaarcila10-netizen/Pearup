@@ -421,6 +421,17 @@ export default function Dashboard() {
     setDeals(prev => prev.map(d => d.id === activeConversation!.id ? { ...d, last_message_at: now, last_message_sender_id: userId } : d));
     setDealReads(prev => ({ ...prev, [activeConversation.id]: now }));
     setSendingMessage(false);
+
+    // Email notification (fire-and-forget)
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token && activeConversation.other_id) {
+      const senderDisplayName = isBrand ? (brandName || profile?.full_name || "Someone") : (profile?.full_name || "Someone");
+      fetch("/api/notify/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ recipient_id: activeConversation.other_id, sender_name: senderDisplayName }),
+      }).catch(() => {});
+    }
   }
 
   async function handleSendOffer() {
