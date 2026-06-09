@@ -270,16 +270,23 @@ export default function ProfilePage() {
         </div>
 
         {/* Portfolio grid — only for creators */}
-        {profileData.type === "creator" && portfolio.length > 0 && (
+        {profileData.type === "creator" && (
           <div style={{ marginBottom: "32px" }}>
             <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "3px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: "12px" }}>Their Vibe</p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 200px)", gap: "2px", justifyContent: "center" }}>
-              {portfolio.map(pic => (
-                <div key={pic.id} onClick={() => setLightboxUrl(pic.url)} style={{ width: "200px", height: "200px", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.04)", cursor: "zoom-in" }}>
-                  <img src={pic.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                </div>
-              ))}
-            </div>
+            {portfolio.length > 0 ? (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 200px)", gap: "2px", justifyContent: "center" }}>
+                {portfolio.map(pic => (
+                  <div key={pic.id} onClick={() => setLightboxUrl(pic.url)} style={{ width: "200px", height: "200px", overflow: "hidden", backgroundColor: "rgba(255,255,255,0.04)", cursor: "zoom-in" }}>
+                    <img src={pic.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ border: "1px dashed rgba(255,255,255,0.1)", padding: "40px 24px", textAlign: "center" }}>
+                <p style={{ fontFamily: "Georgia, serif", fontSize: "13px", color: "rgba(255,255,255,0.3)", margin: "0 0 6px", lineHeight: "1.6" }}>No portfolio images uploaded yet.</p>
+                <p style={{ fontFamily: "Arial", fontSize: "9px", letterSpacing: "2px", color: "rgba(255,255,255,0.2)", textTransform: "uppercase", margin: "0" }}>Profile incomplete</p>
+              </div>
+            )}
           </div>
         )}
 
