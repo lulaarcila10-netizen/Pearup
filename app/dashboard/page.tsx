@@ -1225,7 +1225,7 @@ export default function Dashboard() {
 
     return (
       <div style={{ padding: "24px" }}>
-        <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "4px", color: "#c9a96e", textTransform: "uppercase", marginBottom: "8px" }}>Messages</p>
+        <p style={{ fontFamily: "Arial", fontSize: "11px", letterSpacing: "4px", color: "#c9a96e", textTransform: "uppercase", marginBottom: "8px" }}>Inbox</p>
         <p style={{ fontFamily: "Arial", fontSize: "20px", fontWeight: "300", letterSpacing: "2px", color: "white", marginBottom: "24px" }}>Your active chats.</p>
 
         {dealsLoading ? (
@@ -1500,7 +1500,7 @@ export default function Dashboard() {
           <div style={{ position: "fixed", bottom: "0", left: "0", right: "0", backgroundColor: "#0a0a0a", borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex" }}>
             <NavIcon tab="discover" label="Discover" />
             <NavIcon tab="deals" label="Deals" badge={dealsBadge} />
-            <NavIcon tab="messages" label="Messages" badge={messagesBadge} />
+            <NavIcon tab="messages" label="Inbox" badge={messagesBadge} />
             <NavIcon tab="profile" label="Profile" />
           </div>
         );
