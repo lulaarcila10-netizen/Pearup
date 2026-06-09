@@ -54,7 +54,7 @@ export async function GET(request: Request) {
     { data: authData },
   ] = await Promise.all([
     admin.from("profiles").select("id, full_name, user_type, avatar_url"),
-    admin.from("deals").select("brand_id, creator_id, budget"),
+    admin.from("deals").select("brand_id, creator_id, budget, payment_status"),
     admin.from("creator_profiles").select("id, bio, niche, platforms, follower_count, rate_per_post"),
     admin.from("brand_profiles").select("id, brand_name, description, industry, budget_min"),
     admin.auth.admin.listUsers({ perPage: 1000 }),
@@ -75,15 +75,21 @@ export async function GET(request: Request) {
   });
 
   const dealCounts: Record<string, number> = {};
-  const brandSpent: Record<string, number> = {};   // keyed by brand_id — money going out
-  const creatorEarned: Record<string, number> = {}; // keyed by creator_id — money coming in
+  const paidDealCounts: Record<string, number> = {};
+  const brandSpent: Record<string, number> = {};   // only paid deals
+  const creatorEarned: Record<string, number> = {}; // only paid deals, 88%
   dealData?.forEach((d: any) => {
     const amt = parseFloat((d.budget || "").replace(/[^0-9.]/g, ""));
     const validAmt = !isNaN(amt) && amt > 0 ? amt : 0;
+    const isPaid = d.payment_status === "paid";
     if (d.brand_id) dealCounts[d.brand_id] = (dealCounts[d.brand_id] || 0) + 1;
     if (d.creator_id) dealCounts[d.creator_id] = (dealCounts[d.creator_id] || 0) + 1;
-    if (d.brand_id && validAmt) brandSpent[d.brand_id] = (brandSpent[d.brand_id] || 0) + validAmt;
-    if (d.creator_id && validAmt) creatorEarned[d.creator_id] = (creatorEarned[d.creator_id] || 0) + validAmt * 0.88;
+    if (isPaid) {
+      if (d.brand_id) paidDealCounts[d.brand_id] = (paidDealCounts[d.brand_id] || 0) + 1;
+      if (d.creator_id) paidDealCounts[d.creator_id] = (paidDealCounts[d.creator_id] || 0) + 1;
+      if (d.brand_id && validAmt) brandSpent[d.brand_id] = (brandSpent[d.brand_id] || 0) + validAmt;
+      if (d.creator_id && validAmt) creatorEarned[d.creator_id] = (creatorEarned[d.creator_id] || 0) + validAmt * 0.88;
+    }
   });
 
   // Build completion percentages
@@ -102,6 +108,7 @@ export async function GET(request: Request) {
     user_type: p.user_type,
     avatar_url: p.avatar_url || null,
     deal_count: dealCounts[p.id] || 0,
+    paid_deal_count: paidDealCounts[p.id] || 0,
     total_revenue: p.user_type === "brand" ? (brandSpent[p.id] || 0) : (creatorEarned[p.id] || 0),
     completion: p.user_type === "admin" ? 100 : (completionMap[p.id] ?? 0),
     joined_at: joinedMap[p.id] || "",

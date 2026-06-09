@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 
 type Tab = "payouts" | "users" | "creators" | "brands" | "deals" | "messages" | "support";
 
-type User = { id: string; full_name: string | null; email: string; user_type: string; avatar_url: string | null; deal_count: number; total_revenue: number; completion: number; joined_at: string };
+type User = { id: string; full_name: string | null; email: string; user_type: string; avatar_url: string | null; deal_count: number; paid_deal_count: number; total_revenue: number; completion: number; joined_at: string };
 type Creator = { id: string; full_name: string | null; bio: string | null; niche: string[]; platforms: string[]; follower_count: number | null; rate_per_post: number | null; avatar_url: string | null };
 type Brand = { id: string; brand_name: string; description: string | null; industry: string[]; budget_min: number | null; avatar_url: string | null };
 type Deal = { id: string; brand_name: string; creator_name: string; pitcher_name: string; pitcher_type: string; receiver_name: string; receiver_type: string; message: string; budget: string | null; status: string; payment_status: string | null; content_status: string | null; payout_sent: boolean; post_link: string | null; created_at: string };
@@ -383,7 +383,7 @@ export default function AdminPage() {
                                 <p style={{ fontFamily: "Arial", fontSize: "10px", letterSpacing: "1px", color: "rgba(255,255,255,0.4)", margin: "0" }}>{u.email}</p>
                               </div>
                               <div style={{ textAlign: "right" }}>
-                                <p style={{ fontFamily: "Arial", fontSize: "11px", color: "#c9a96e", margin: "0 0 2px" }}>{u.deal_count} deal{u.deal_count !== 1 ? "s" : ""}</p>
+                                <p style={{ fontFamily: "Arial", fontSize: "11px", color: "#c9a96e", margin: "0 0 2px" }}>{u.deal_count} deal{u.deal_count !== 1 ? "s" : ""}{u.deal_count > 0 && u.paid_deal_count < u.deal_count ? ` (${u.paid_deal_count} paid)` : ""}</p>
                                 <p style={{ fontFamily: "Arial", fontSize: "11px", color: "rgba(255,255,255,0.55)", margin: "0" }}>{u.total_revenue > 0 ? `$${u.total_revenue.toLocaleString()}` : "—"} {u.user_type === "brand" ? "spent" : u.user_type === "creator" ? "earned" : ""}</p>
                               </div>
                             </div>
