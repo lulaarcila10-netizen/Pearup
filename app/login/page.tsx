@@ -77,7 +77,7 @@ export default function Login() {
             </button>
           </form>
 
-          <button onClick={() => setShowForgot(true)} style={{ marginTop: "20px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "13px", cursor: "pointer" }}>
+          <button onClick={() => { setShowForgot(true); setForgotSent(false); setForgotEmail(""); }} style={{ marginTop: "20px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "13px", cursor: "pointer" }}>
             Forgot your password?
           </button>
 
@@ -104,7 +104,7 @@ export default function Login() {
             </p>
           )}
 
-          <button onClick={() => setShowForgot(false)} style={{ marginTop: "24px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "13px", cursor: "pointer" }}>
+          <button onClick={() => { setShowForgot(false); setForgotSent(false); setForgotEmail(""); }} style={{ marginTop: "24px", background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "13px", cursor: "pointer" }}>
             Back to login
           </button>
         </>
