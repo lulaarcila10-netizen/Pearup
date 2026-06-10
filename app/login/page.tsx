@@ -35,9 +35,7 @@ export default function Login() {
   async function handleForgotPassword(e: React.FormEvent) {
     e.preventDefault();
     setForgotLoading(true);
-    await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: "https://pearup.vercel.app/reset-password",
-    });
+    await supabase.auth.resetPasswordForEmail(forgotEmail);
     setForgotSent(true);
     setForgotLoading(false);
   }
