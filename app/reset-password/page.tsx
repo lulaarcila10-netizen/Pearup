@@ -13,12 +13,27 @@ export default function ResetPassword() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Listen for PASSWORD_RECOVERY — fired when Supabase detects recovery tokens in URL
+    // Check for error in hash (e.g. otp_expired)
+    const hash = window.location.hash;
+    if (hash.includes("error=")) {
+      const params = new URLSearchParams(hash.substring(1));
+      const desc = params.get("error_description");
+      const code = params.get("error_code");
+      if (code === "otp_expired") {
+        setError("This reset link has expired. Please go back and request a new one.");
+      } else {
+        setError(desc || "Invalid reset link. Please request a new one.");
+      }
+      setReady(true);
+      return;
+    }
+
+    // Listen for PASSWORD_RECOVERY — fired when Supabase processes recovery tokens in URL
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setReady(true);
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
     });
 
-    // Also check if session already exists (user landed here directly)
+    // Also check if session already exists
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setReady(true);
     });
@@ -56,6 +71,17 @@ export default function ResetPassword() {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <p style={{ color: "#c9a96e", fontFamily: "Arial", fontSize: "11px", letterSpacing: "4px", textTransform: "uppercase" }}>Verifying link...</p>
+      </div>
+    );
+  }
+
+  // Show error-only view (expired link, etc.) — no password form
+  if (error && !password && !confirm) {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: "#0a0a0a", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+        <p style={{ fontFamily: "Arial", fontSize: "16px", fontWeight: "700", letterSpacing: "4px", color: "#c9a96e", marginBottom: "32px" }}>PEARUP</p>
+        <p style={{ color: "#ff6b6b", fontFamily: "Arial", fontSize: "13px", textAlign: "center", maxWidth: "320px", lineHeight: "1.7" }}>{error}</p>
+        <a href="/login" style={{ marginTop: "24px", color: "rgba(255,255,255,0.4)", fontFamily: "Georgia, serif", fontSize: "13px", textDecoration: "none" }}>Back to login</a>
       </div>
     );
   }
