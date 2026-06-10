@@ -13,11 +13,12 @@ export default function ResetPassword() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Supabase exchanges the token from the URL automatically on load
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setReady(true);
+    // Check if we already have a session (set by AuthHandler after PASSWORD_RECOVERY)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setReady(true);
+      else router.push("/login");
     });
-  }, []);
+  }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

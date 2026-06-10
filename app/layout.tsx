@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthHandler } from "./components/AuthHandler";
 
 export const metadata: Metadata = {
   title: "Pearup",
@@ -13,7 +14,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AuthHandler />
+        {children}
+      </body>
     </html>
   );
 }
