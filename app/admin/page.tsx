@@ -521,8 +521,12 @@ export default function AdminPage() {
                         </div>
                       </div>
 
+                      {d.message && (
+                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.35)", margin: "0 0 8px", fontStyle: "italic" }}>&ldquo;{d.message}&rdquo;</p>
+                      )}
+
                       {declined ? (
-                        <p style={{ fontFamily: "Georgia, serif", fontSize: "12px", color: "rgba(255,255,255,0.35)", margin: "0", fontStyle: "italic" }}>&ldquo;{d.message.length > 90 ? d.message.slice(0, 90) + "…" : d.message}&rdquo;</p>
+                        null
                       ) : (
                         <div style={{ display: "flex", alignItems: "flex-start" }}>
                           {PIPELINE_LABELS.map((label, i) => {
