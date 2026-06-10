@@ -6,7 +6,6 @@ const admin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   const token = request.headers.get("Authorization")?.replace("Bearer ", "");
@@ -22,6 +21,7 @@ export async function POST(request: Request) {
   const recipient = users?.find((u: any) => u.id === recipient_id);
   if (!recipient?.email) return NextResponse.json({ ok: true });
 
+  const resend = new Resend(process.env.RESEND_API_KEY);
   await resend.emails.send({
     from: "PearUp <onboarding@resend.dev>",
     to: recipient.email,

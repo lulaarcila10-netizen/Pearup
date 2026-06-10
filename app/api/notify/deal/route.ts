@@ -6,7 +6,6 @@ const admin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   const token = request.headers.get("Authorization")?.replace("Bearer ", "");
@@ -21,6 +20,7 @@ export async function POST(request: Request) {
   const recipient = users?.find((u: any) => u.id === recipient_id);
   if (!recipient?.email) return NextResponse.json({ ok: true }); // no email, skip silently
 
+  const resend = new Resend(process.env.RESEND_API_KEY);
   const budgetLine = budget ? `<p style="margin:8px 0 0;font-family:Arial,sans-serif;font-size:13px;color:#c9a96e;">Budget: ${budget}</p>` : "";
 
   await resend.emails.send({
